@@ -1,24 +1,5 @@
 const { Events, Collection } = require('discord.js');
-const mongoose = require('mongoose');
 const { handleError } = require('../utils/errorHandling');
-
-const databaseRequiredCommands = new Set([
-    'addmember',
-    'removemember',
-    'members',
-    'leaderboard',
-    'quiz',
-    'answer',
-    'progress',
-    'today',
-    'my-progress',
-    'complete-task',
-    'addplaylist',
-    'pauseplaylist',
-    'removeplaylist',
-    'resumeplaylist',
-    'playliststatus',
-]);
 
 module.exports = {
     name: Events.InteractionCreate,
@@ -32,11 +13,27 @@ module.exports = {
             return;
         }
 
-        if (databaseRequiredCommands.has(command.data.name) && mongoose.connection.readyState !== 1) {
-            return interaction.reply({
-                content: 'Database is currently unavailable, so this command cannot run right now. Please try again later.',
-                ephemeral: true,
-            });
+        const originalReply = interaction.reply.bind(interaction);
+        const originalDeferReply = interaction.deferReply.bind(interaction);
+
+        interaction.reply = async options => {
+            if (interaction.deferred || interaction.replied) {
+                return interaction.editReply(options);
+            }
+
+            return originalReply(options);
+        };
+
+        interaction.deferReply = async options => {
+            if (interaction.deferred || interaction.replied) {
+                return interaction;
+            }
+
+            return originalDeferReply(options);
+        };
+
+        if (!interaction.deferred && !interaction.replied) {
+            await interaction.deferReply();
         }
 
         // Cooldown logic

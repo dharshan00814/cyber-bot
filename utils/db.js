@@ -1,10 +1,10 @@
 const connectDB = async () => {
     if (process.env.SUPABASE_URL && process.env.SUPABASE_KEY) {
-        console.log('Supabase configuration loaded successfully!');
+        console.log('✅ Supabase configured and ready!');
         return;
     }
 
-    console.warn('Supabase is not configured. Set SUPABASE_URL and SUPABASE_KEY in .env.');
+    console.warn('⚠️  Warning: SUPABASE_URL and SUPABASE_KEY not set. Database features will not work.');
 };
 
 module.exports = connectDB;
