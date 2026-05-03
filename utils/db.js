@@ -1,18 +1,10 @@
-const mongoose = require('mongoose');
-
-mongoose.set('bufferCommands', false);
-
 const connectDB = async () => {
-    try {
-        await mongoose.connect(process.env.MONGODB_URI, {
-            serverSelectionTimeoutMS: 5000,
-            connectTimeoutMS: 5000,
-        });
-        console.log('MongoDB Connected successfully!');
-    } catch (error) {
-        console.error('Error connecting to MongoDB:', error.message);
-        console.warn('Bot will continue running without database. Some features may not work.');
+    if (process.env.SUPABASE_URL && process.env.SUPABASE_KEY) {
+        console.log('Supabase configuration loaded successfully!');
+        return;
     }
+
+    console.warn('Supabase is not configured. Set SUPABASE_URL and SUPABASE_KEY in .env.');
 };
 
 module.exports = connectDB;
