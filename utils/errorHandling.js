@@ -3,10 +3,14 @@ async function handleError(interaction, error) {
     
     const errorMessage = { content: 'There was an error while executing this command!', ephemeral: true };
     
-    if (interaction.replied || interaction.deferred) {
-        await interaction.followUp(errorMessage);
-    } else {
-        await interaction.reply(errorMessage);
+    try {
+        if (interaction.replied || interaction.deferred) {
+            await interaction.followUp(errorMessage);
+        } else {
+            await interaction.reply(errorMessage);
+        }
+    } catch (err) {
+        console.error('Error sending error message:', err);
     }
 }
 

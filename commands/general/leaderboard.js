@@ -7,10 +7,11 @@ module.exports = {
         .setDescription('View the activity leaderboard'),
     async execute(interaction) {
         try {
+            await interaction.deferReply();
             const members = await Member.find().sort({ activityScore: -1 }).limit(10);
             
             if (members.length === 0) {
-                return interaction.reply('No members found.');
+                return interaction.editReply('No members found.');
             }
 
             const embed = new EmbedBuilder()
@@ -24,10 +25,10 @@ module.exports = {
 
             embed.setDescription(description);
 
-            await interaction.reply({ embeds: [embed] });
+            await interaction.editReply({ embeds: [embed] });
         } catch (error) {
             console.error(error);
-            await interaction.reply({ content: 'Error loading leaderboard.', ephemeral: true });
+            await interaction.editReply({ content: 'Error loading leaderboard.', ephemeral: true });
         }
     },
 };

@@ -57,4 +57,13 @@ if (fs.existsSync(eventsPath)) {
 // Start daily scheduler (e.g. at 6 PM)
 startScheduler(client);
 
+// Handle unhandled errors
+client.on('error', error => {
+    console.error('Client error:', error);
+});
+
+process.on('unhandledRejection', error => {
+    console.error('Unhandled rejection:', error);
+});
+
 client.login(process.env.DISCORD_TOKEN);

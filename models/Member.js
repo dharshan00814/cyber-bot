@@ -9,6 +9,13 @@ const memberSchema = new mongoose.Schema({
     streak: { type: Number, default: 0 },
     lastActiveDate: { type: Date },
     xp: { type: Number, default: 0 },
+    completedTasks: [
+        {
+            taskName: { type: String, required: true },
+            completedDate: { type: Date, default: Date.now },
+            pointsEarned: { type: Number, default: 5 },
+        }
+    ],
 });
 
 module.exports = mongoose.model('Member', memberSchema);
