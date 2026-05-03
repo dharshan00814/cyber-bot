@@ -51,8 +51,8 @@ module.exports = {
             }
 
             member.lastActiveDate = now;
-            member.activityScore += 10;
-            member.xp += 20;
+            member.activityScore += 5;
+            member.xp += 5;
 
             // Simple rank update based on XP
             if (member.xp >= 100 && member.role === 'beginner') {
