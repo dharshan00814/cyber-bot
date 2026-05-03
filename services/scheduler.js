@@ -8,6 +8,7 @@ function startScheduler(client) {
         console.log('Running daily scheduler at 6 PM...');
         try {
             await processPlaylists(client);
+            await awardDailyPoints(client);
             await resetDailyTasks(client);
         } catch (error) {
             console.error('Error in daily scheduler:', error);
@@ -52,11 +53,65 @@ async function processPlaylists(client) {
 async function resetDailyTasks(client) {
     // Optional: Reset streaks for users who didn't participate, etc.
     const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
-    await Member.updateMany(
-        { lastActiveDate: { $lt: oneDayAgo } },
-        { $set: { streak: 0 } }
-    );
+    try {
+        const members = await Member.find().exec();
+
+        for (const m of members) {
+            if (!m.lastActiveDate || new Date(m.lastActiveDate) < oneDayAgo) {
+                m.streak = 0;
+                try { await m.save(); } catch (e) { console.error('Error resetting streak for', m.userId, e); }
+            }
+        }
+    } catch (e) {
+        console.error('Error evaluating daily tasks/streaks:', e);
+    }
     console.log('Daily tasks and streaks evaluated.');
 }
 
-module.exports = { startScheduler };
+async function awardDailyPoints(client) {
+    const TRACK_GUILD_ID = '1497878851693318204';
+
+    try {
+        const guild = await client.guilds.fetch(TRACK_GUILD_ID);
+        if (!guild) {
+            console.log('Guild not found:', TRACK_GUILD_ID);
+            return;
+        }
+
+        const guildMembers = await guild.members.fetch();
+
+        for (const guildMember of guildMembers.values()) {
+            if (guildMember.user?.bot) continue;
+
+            try {
+                const userId = guildMember.user.id;
+                let member = await Member.findOne({ userId });
+
+                if (member) {
+                    member.xp = (member.xp ?? 0) + 10;
+                    member.activityScore = (member.activityScore ?? 0) + 1;
+                    member.lastActiveDate = new Date();
+                    await member.save();
+                } else {
+                    const newMember = new Member({
+                        userId: guildMember.user.id,
+                        name: guildMember.user.username,
+                        joinDate: new Date(),
+                        xp: 10,
+                        activityScore: 1,
+                        lastActiveDate: new Date(),
+                    });
+                    await newMember.save();
+                }
+            } catch (err) {
+                console.error('Error awarding daily points to member:', guildMember.user?.id, err);
+            }
+        }
+
+        console.log(`Daily points awarded for guild ${TRACK_GUILD_ID}`);
+    } catch (err) {
+        console.error('Could not award daily points for guild', TRACK_GUILD_ID, err);
+    }
+}
+
+module.exports = { startScheduler, awardDailyPoints };
