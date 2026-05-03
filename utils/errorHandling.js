@@ -4,7 +4,9 @@ async function handleError(interaction, error) {
     const errorMessage = { content: 'There was an error while executing this command!', ephemeral: true };
     
     try {
-        if (interaction.replied || interaction.deferred) {
+        if (interaction.deferred) {
+            await interaction.editReply(errorMessage);
+        } else if (interaction.replied) {
             await interaction.followUp(errorMessage);
         } else {
             await interaction.reply(errorMessage);

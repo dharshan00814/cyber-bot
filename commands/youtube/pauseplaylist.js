@@ -11,6 +11,7 @@ module.exports = {
                 .setRequired(true))
         .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
     async execute(interaction) {
+        await interaction.deferReply({ ephemeral: true });
         const title = interaction.options.getString('title');
         
         try {
@@ -21,13 +22,13 @@ module.exports = {
             );
 
             if (!playlist) {
-                return interaction.reply({ content: `Playlist "${title}" not found in this channel.`, ephemeral: true });
+                return interaction.editReply({ content: `Playlist "${title}" not found in this channel.` });
             }
 
-            await interaction.reply(`Playlist **${playlist.title}** has been paused.`);
+            await interaction.editReply(`Playlist **${playlist.title}** has been paused.`);
         } catch (error) {
             console.error(error);
-            await interaction.reply({ content: 'Error pausing playlist.', ephemeral: true });
+            await interaction.editReply({ content: 'Error pausing playlist.' });
         }
     },
 };

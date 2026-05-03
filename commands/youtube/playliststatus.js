@@ -6,11 +6,12 @@ module.exports = {
         .setName('playliststatus')
         .setDescription('Check the status of scheduled playlists'),
     async execute(interaction) {
+        await interaction.deferReply();
         try {
             const playlists = await Playlist.find({ channelId: interaction.channelId });
 
             if (playlists.length === 0) {
-                return interaction.reply('No playlists scheduled for this channel.');
+                return interaction.editReply('No playlists scheduled for this channel.');
             }
 
             const embed = new EmbedBuilder()
@@ -24,10 +25,10 @@ module.exports = {
                 });
             }
 
-            await interaction.reply({ embeds: [embed] });
+            await interaction.editReply({ embeds: [embed] });
         } catch (error) {
             console.error(error);
-            await interaction.reply({ content: 'Error fetching playlist status.', ephemeral: true });
+            await interaction.editReply({ content: 'Error fetching playlist status.' });
         }
     },
 };

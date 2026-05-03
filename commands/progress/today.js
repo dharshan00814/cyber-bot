@@ -6,6 +6,7 @@ module.exports = {
         .setName('today')
         .setDescription('See today\'s progress from all members'),
     async execute(interaction) {
+        await interaction.deferReply();
         try {
             const startOfDay = new Date();
             startOfDay.setHours(0, 0, 0, 0);
@@ -13,7 +14,7 @@ module.exports = {
             const progresses = await Progress.find({ date: { $gte: startOfDay } }).populate('userId');
             
             if (progresses.length === 0) {
-                return interaction.reply('No progress logged today yet.');
+                return interaction.editReply('No progress logged today yet.');
             }
 
             const embed = new EmbedBuilder()
@@ -25,10 +26,10 @@ module.exports = {
                 embed.addFields({ name: `User <@${prog.userId}>`, value: prog.text });
             }
 
-            await interaction.reply({ embeds: [embed] });
+            await interaction.editReply({ embeds: [embed] });
         } catch (error) {
             console.error(error);
-            await interaction.reply({ content: 'Error fetching today\'s progress.', ephemeral: true });
+            await interaction.editReply({ content: 'Error fetching today\'s progress.' });
         }
     },
 };

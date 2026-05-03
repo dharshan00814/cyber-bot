@@ -9,6 +9,7 @@ module.exports = {
         .setName('quiz')
         .setDescription('Start a cybersecurity quiz'),
     async execute(interaction) {
+        await interaction.deferReply();
         try {
             // Count total quizzes and pick a random one
             const count = await Quiz.countDocuments();
@@ -43,10 +44,10 @@ module.exports = {
                 .setDescription(`**${quiz.question}**\n\n${quiz.options.join('\n')}\n\n*Use \`/answer <option_number>\` to answer!*`)
                 .setColor('#ffaa00');
 
-            await interaction.reply({ embeds: [embed] });
+            await interaction.editReply({ embeds: [embed] });
         } catch (error) {
             console.error(error);
-            await interaction.reply({ content: 'Error loading quiz.', ephemeral: true });
+            await interaction.editReply({ content: 'Error loading quiz.' });
         }
     },
     activeQuizzes // Exporting map to be accessible by answer.js if needed, or we can use global.

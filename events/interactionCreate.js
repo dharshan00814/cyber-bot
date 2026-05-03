@@ -1,5 +1,24 @@
 const { Events, Collection } = require('discord.js');
+const mongoose = require('mongoose');
 const { handleError } = require('../utils/errorHandling');
+
+const databaseRequiredCommands = new Set([
+    'addmember',
+    'removemember',
+    'members',
+    'leaderboard',
+    'quiz',
+    'answer',
+    'progress',
+    'today',
+    'my-progress',
+    'complete-task',
+    'addplaylist',
+    'pauseplaylist',
+    'removeplaylist',
+    'resumeplaylist',
+    'playliststatus',
+]);
 
 module.exports = {
     name: Events.InteractionCreate,
@@ -11,6 +30,13 @@ module.exports = {
         if (!command) {
             console.error(`No command matching ${interaction.commandName} was found.`);
             return;
+        }
+
+        if (databaseRequiredCommands.has(command.data.name) && mongoose.connection.readyState !== 1) {
+            return interaction.reply({
+                content: 'Database is currently unavailable, so this command cannot run right now. Please try again later.',
+                ephemeral: true,
+            });
         }
 
         // Cooldown logic

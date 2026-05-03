@@ -11,6 +11,7 @@ module.exports = {
                 .setDescription('What did you learn today?')
                 .setRequired(true)),
     async execute(interaction) {
+        await interaction.deferReply();
         const text = interaction.options.getString('text');
         const userId = interaction.user.id;
 
@@ -61,10 +62,10 @@ module.exports = {
 
             await member.save();
 
-            await interaction.reply(`Progress logged! Keep it up. Streak: ${member.streak} 🔥`);
+            await interaction.editReply(`Progress logged! Keep it up. Streak: ${member.streak} 🔥`);
         } catch (error) {
             console.error(error);
-            await interaction.reply({ content: 'There was an error saving your progress.', ephemeral: true });
+            await interaction.editReply({ content: 'There was an error saving your progress.' });
         }
     },
 };

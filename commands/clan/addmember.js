@@ -20,13 +20,14 @@ module.exports = {
                 ))
         .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
     async execute(interaction) {
+        await interaction.deferReply({ ephemeral: true });
         const targetUser = interaction.options.getUser('target');
         const role = interaction.options.getString('role');
 
         try {
             const existingMember = await Member.findOne({ userId: targetUser.id });
             if (existingMember) {
-                return interaction.reply({ content: `${targetUser.username} is already in the clan!`, ephemeral: true });
+                return interaction.editReply({ content: `${targetUser.username} is already in the clan!` });
             }
 
             const newMember = new Member({
@@ -36,10 +37,10 @@ module.exports = {
             });
 
             await newMember.save();
-            await interaction.reply(`Successfully added **${targetUser.username}** to the clan as a **${role}**.`);
+            await interaction.editReply(`Successfully added **${targetUser.username}** to the clan as a **${role}**.`);
         } catch (error) {
             console.error(error);
-            await interaction.reply({ content: 'There was an error adding the member.', ephemeral: true });
+            await interaction.editReply({ content: 'There was an error adding the member.' });
         }
     },
 };

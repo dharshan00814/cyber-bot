@@ -13,11 +13,12 @@ module.exports = {
                 .setDescription('The option number (e.g., 1, 2, 3)')
                 .setRequired(true)),
     async execute(interaction) {
+        await interaction.deferReply({ ephemeral: true });
         const userId = interaction.user.id;
         const answer = interaction.options.getInteger('option');
 
         if (!activeQuizzes.has(userId)) {
-            return interaction.reply({ content: 'You do not have an active quiz! Use `/quiz` first.', ephemeral: true });
+            return interaction.editReply({ content: 'You do not have an active quiz! Use `/quiz` first.' });
         }
 
         const session = activeQuizzes.get(userId);
@@ -35,10 +36,10 @@ module.exports = {
                 }
             } catch(e) { console.error(e); }
 
-            await interaction.reply('✅ **Correct!** You earned +5 XP.');
+            await interaction.editReply('✅ **Correct!** You earned +5 XP.');
         } else {
             activeQuizzes.delete(userId);
-            await interaction.reply('❌ **Incorrect!** Keep learning and try again.');
+            await interaction.editReply('❌ **Incorrect!** Keep learning and try again.');
         }
     },
 };

@@ -11,19 +11,20 @@ module.exports = {
                 .setRequired(true))
         .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
     async execute(interaction) {
+        await interaction.deferReply({ ephemeral: true });
         const title = interaction.options.getString('title');
         
         try {
             const deleted = await Playlist.findOneAndDelete({ title: title, channelId: interaction.channelId });
 
             if (!deleted) {
-                return interaction.reply({ content: `Playlist "${title}" not found in this channel.`, ephemeral: true });
+                return interaction.editReply({ content: `Playlist "${title}" not found in this channel.` });
             }
 
-            await interaction.reply(`Playlist **${deleted.title}** has been removed.`);
+            await interaction.editReply(`Playlist **${deleted.title}** has been removed.`);
         } catch (error) {
             console.error(error);
-            await interaction.reply({ content: 'Error removing playlist.', ephemeral: true });
+            await interaction.editReply({ content: 'Error removing playlist.' });
         }
     },
 };

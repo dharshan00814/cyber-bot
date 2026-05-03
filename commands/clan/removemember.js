@@ -11,18 +11,19 @@ module.exports = {
                 .setRequired(true))
         .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
     async execute(interaction) {
+        await interaction.deferReply({ ephemeral: true });
         const targetUser = interaction.options.getUser('target');
 
         try {
             const deletedMember = await Member.findOneAndDelete({ userId: targetUser.id });
             if (!deletedMember) {
-                return interaction.reply({ content: `${targetUser.username} is not in the clan!`, ephemeral: true });
+                return interaction.editReply({ content: `${targetUser.username} is not in the clan!` });
             }
 
-            await interaction.reply(`Successfully removed **${targetUser.username}** from the clan.`);
+            await interaction.editReply(`Successfully removed **${targetUser.username}** from the clan.`);
         } catch (error) {
             console.error(error);
-            await interaction.reply({ content: 'There was an error removing the member.', ephemeral: true });
+            await interaction.editReply({ content: 'There was an error removing the member.' });
         }
     },
 };
