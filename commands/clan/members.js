@@ -7,10 +7,11 @@ module.exports = {
         .setDescription('List all clan members'),
     async execute(interaction) {
         try {
+            await interaction.deferReply();
             const members = await Member.find().sort({ role: -1, activityScore: -1 });
             
             if (members.length === 0) {
-                return interaction.reply('The clan is currently empty.');
+                return interaction.editReply('The clan is currently empty.');
             }
 
             const embed = new EmbedBuilder()
@@ -24,10 +25,10 @@ module.exports = {
 
             embed.setDescription(description);
 
-            await interaction.reply({ embeds: [embed] });
+            await interaction.editReply({ embeds: [embed] });
         } catch (error) {
             console.error(error);
-            await interaction.reply({ content: 'There was an error fetching members.', ephemeral: true });
+            await interaction.editReply({ content: 'There was an error fetching members.', ephemeral: true });
         }
     },
 };
