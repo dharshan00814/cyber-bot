@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
+const { SlashCommandBuilder } = require('discord.js');
 const Member = require('../../models/Member');
 
 module.exports = {
@@ -6,8 +6,7 @@ module.exports = {
 		.setName('addpoints')
 		.setDescription('Add points to a user')
 		.addIntegerOption(option => option.setName('amount').setDescription('Number of points to add').setRequired(true))
-		.addUserOption(option => option.setName('user').setDescription('User to add points to'))
-		.setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild),
+		.addUserOption(option => option.setName('user').setDescription('User to add points to')),
 
 	async execute(interaction) {
 		await interaction.deferReply({ ephemeral: false });
