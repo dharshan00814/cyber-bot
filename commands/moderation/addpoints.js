@@ -4,17 +4,17 @@ const Member = require('../../models/Member');
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('addpoints')
-		.setDescription('Add points to yourself or another member')
-		.addUserOption(option => option.setName('target').setDescription('User to add points to'))
-		.addIntegerOption(option => option.setName('points').setDescription('Number of points to add').setRequired(true))
+		.setDescription('Add points to a user')
+		.addIntegerOption(option => option.setName('amount').setDescription('Number of points to add').setRequired(true))
+		.addUserOption(option => option.setName('user').setDescription('User to add points to'))
 		.setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild),
 
 	async execute(interaction) {
 		await interaction.deferReply({ ephemeral: false });
 
 		try {
-			const targetUser = interaction.options.getUser('target') || interaction.user;
-			const points = interaction.options.getInteger('points');
+			const targetUser = interaction.options.getUser('user') || interaction.user;
+			const points = interaction.options.getInteger('amount');
 
 			if (!Number.isInteger(points) || points === 0) {
 				return interaction.editReply({ content: 'Please provide a non-zero integer for points.' });
