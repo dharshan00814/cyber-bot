@@ -24,7 +24,7 @@ async function registerCommands(client) {
 
     const rest = new REST().setToken(process.env.DISCORD_TOKEN);
     const applicationId = client.application?.id || process.env.CLIENT_ID;
-    const guildId = process.env.GUILD_ID || process.env.CLIENT_ID;
+    const guildId = process.env.GUILD_ID || client.guilds.cache.first()?.id;
 
     if (!applicationId) {
         console.error('Could not determine the Discord application ID for command registration.');
@@ -36,12 +36,14 @@ async function registerCommands(client) {
 
         let data;
         if (guildId) {
+            console.log(`Registering commands for guild ${guildId}.`);
             data = await rest.put(
                 Routes.applicationGuildCommands(applicationId, guildId),
                 { body: commands },
             );
             console.log(`Successfully reloaded ${data.length} guild (/) commands.`);
         } else {
+            console.log('No guild found in cache. Registering global commands instead.');
             data = await rest.put(
                 Routes.applicationCommands(applicationId),
                 { body: commands },

@@ -69,7 +69,7 @@ class Member {
         if (this._id) {
             response = await client.from('members').update(row).eq('id', this._id).select('*').single();
         } else {
-            response = await client.from('members').insert(row).select('*').single();
+            response = await client.from('members').upsert(row, { onConflict: 'user_id' }).select('*').single();
         }
 
         const { data, error } = response;
