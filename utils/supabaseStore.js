@@ -98,6 +98,13 @@ function compareValues(left, right, direction = 1) {
     return String(leftComparable).localeCompare(String(rightComparable)) * direction;
 }
 
+function toSnakeCase(field) {
+    return field
+        .replace(/([a-z0-9])([A-Z])/g, '$1_$2')
+        .replace(/([A-Z]+)([A-Z][a-z0-9]+)/g, '$1_$2')
+        .toLowerCase();
+}
+
 function sortRecords(records, sortSpec) {
     if (!sortSpec || typeof sortSpec !== 'object') {
         return records;
@@ -119,7 +126,7 @@ function sortRecords(records, sortSpec) {
 
 function matchesFilter(record, filter = {}) {
     return Object.entries(filter).every(([field, expectedValue]) => {
-        const actualValue = record[field];
+        const actualValue = record[field] ?? record[toSnakeCase(field)];
 
         if (expectedValue && typeof expectedValue === 'object' && !Array.isArray(expectedValue)) {
             if (Object.prototype.hasOwnProperty.call(expectedValue, '$gte')) {

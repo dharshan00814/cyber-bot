@@ -23,20 +23,27 @@ async function registerCommands(client) {
     }
 
     const rest = new REST().setToken(process.env.DISCORD_TOKEN);
+    const applicationId = client.application?.id || process.env.CLIENT_ID;
+    const guildId = process.env.GUILD_ID || process.env.CLIENT_ID;
+
+    if (!applicationId) {
+        console.error('Could not determine the Discord application ID for command registration.');
+        return;
+    }
 
     try {
         console.log(`Started refreshing ${commands.length} application (/) commands.`);
 
         let data;
-        if (process.env.GUILD_ID) {
+        if (guildId) {
             data = await rest.put(
-                Routes.applicationGuildCommands(process.env.CLIENT_ID, process.env.GUILD_ID),
+                Routes.applicationGuildCommands(applicationId, guildId),
                 { body: commands },
             );
             console.log(`Successfully reloaded ${data.length} guild (/) commands.`);
         } else {
             data = await rest.put(
-                Routes.applicationCommands(process.env.CLIENT_ID),
+                Routes.applicationCommands(applicationId),
                 { body: commands },
             );
             console.log(`Successfully reloaded ${data.length} global (/) commands.`);

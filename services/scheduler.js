@@ -88,7 +88,7 @@ async function awardDailyPoints(client) {
                 let member = await Member.findOne({ userId });
 
                 if (member) {
-                    member.xp = (member.xp ?? 0) + 10;
+                    member.xp = (member.xp ?? 0) + 1;
                     member.activityScore = (member.activityScore ?? 0) + 1;
                     member.lastActiveDate = new Date();
                     await member.save();
@@ -97,7 +97,7 @@ async function awardDailyPoints(client) {
                         userId: guildMember.user.id,
                         name: guildMember.user.username,
                         joinDate: new Date(),
-                        xp: 10,
+                        xp: 1,
                         activityScore: 1,
                         lastActiveDate: new Date(),
                     });
