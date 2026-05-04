@@ -14,9 +14,8 @@ module.exports = {
 
 			// Sort by XP descending
 			members.sort((a, b) => (b.xp ?? 0) - (a.xp ?? 0));
-			const topMembers = members.slice(0, 10);
 
-			const leaderboard = topMembers.map((member, index) => {
+			const leaderboard = members.map((member, index) => {
 				const rank = index + 1;
 				const name = member.name || member.userId || 'Unknown';
 				const xp = member.xp ?? 0;
@@ -24,7 +23,7 @@ module.exports = {
 			}).join('\n');
 
 			const embed = new EmbedBuilder()
-				.setTitle('🏆 Leaderboard - Top 10 Members')
+				.setTitle('🏆 Leaderboard - All Members')
 				.setDescription(leaderboard)
 				.setColor(0x00ff00)
 				.setFooter({ text: `Total tracked: ${members.length}` })
