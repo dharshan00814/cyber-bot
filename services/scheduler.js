@@ -8,7 +8,8 @@ function startScheduler(client) {
         console.log('Running daily scheduler at 6 PM...');
         try {
             await processPlaylists(client);
-            await awardDailyPoints(client);
+            // Points are now awarded only when members post progress updates (via messageCreate event)
+            // await awardDailyPoints(client);
             await resetDailyTasks(client);
         } catch (error) {
             console.error('Error in daily scheduler:', error);
@@ -88,7 +89,7 @@ async function awardDailyPoints(client) {
                 let member = await Member.findOne({ userId });
 
                 if (member) {
-                    member.xp = (member.xp ?? 0) + 1;
+                    member.xp = (member.xp ?? 0) + 10;
                     member.activityScore = (member.activityScore ?? 0) + 1;
                     member.lastActiveDate = new Date();
                     await member.save();
@@ -97,7 +98,7 @@ async function awardDailyPoints(client) {
                         userId: guildMember.user.id,
                         name: guildMember.user.username,
                         joinDate: new Date(),
-                        xp: 1,
+                        xp: 10,
                         activityScore: 1,
                         lastActiveDate: new Date(),
                     });
