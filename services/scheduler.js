@@ -15,6 +15,16 @@ function startScheduler(client) {
             console.error('Error in daily scheduler:', error);
         }
     });
+
+    // Schedule announcement every day at 7 PM (19:00) server time
+    cron.schedule('0 19 * * *', async () => {
+        console.log('Sending daily announcement at 7 PM...');
+        try {
+            await sendDailyAnnouncement(client);
+        } catch (error) {
+            console.error('Error sending daily announcement:', error);
+        }
+    });
 }
 
 async function processPlaylists(client) {
@@ -67,6 +77,40 @@ async function resetDailyTasks(client) {
         console.error('Error evaluating daily tasks/streaks:', e);
     }
     console.log('Daily tasks and streaks evaluated.');
+}
+
+async function sendDailyAnnouncement(client) {
+    const ANNOUNCEMENT_CHANNEL_ID = '1497879179360731247';
+    const ANNOUNCEMENT_MESSAGE = 'hey cybers "Have a meeting at 7pm';
+    const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+
+    try {
+        // Find members who posted progress in the last 24 hours
+        const membersWithProgress = await Member.find({
+            lastActiveDate: { $gte: oneDayAgo }
+        });
+
+        console.log(`Found ${membersWithProgress.length} members with progress today.`);
+
+        // Send alert only to members who posted progress
+        for (const member of membersWithProgress) {
+            try {
+                const user = await client.users.fetch(member.userId);
+                if (user) {
+                    await user.send(ANNOUNCEMENT_MESSAGE);
+                    console.log(`Alert sent to ${user.username} (${member.userId})`);
+                }
+            } catch (err) {
+                console.error(`Error sending alert to member ${member.userId}:`, err);
+            }
+        }
+
+        if (membersWithProgress.length === 0) {
+            console.log('No members with progress today. No alerts sent.');
+        }
+    } catch (err) {
+        console.error('Error in daily announcement:', err);
+    }
 }
 
 async function awardDailyPoints(client) {
