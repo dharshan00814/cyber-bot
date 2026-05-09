@@ -1,9 +1,12 @@
 require('dotenv').config();
+const express = require('express');
 const { Client, GatewayIntentBits, Collection } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
 const connectDB = require('./utils/db');
 const { startScheduler } = require('./services/scheduler');
+
+const app = express();
 
 const client = new Client({
     intents: [
@@ -16,6 +19,16 @@ const client = new Client({
 
 client.commands = new Collection();
 client.cooldowns = new Collection();
+
+app.get("/", (req, res) => {
+    res.send("Bot is running");
+});
+
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Server running on port ${PORT}`);
+});
 
 // Connect to Database
 connectDB();
