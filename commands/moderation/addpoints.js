@@ -34,6 +34,7 @@ module.exports = {
 					joinDate: new Date(),
 					lastActiveDate: new Date(),
 				});
+				
 				await member.save();
 			}
 
