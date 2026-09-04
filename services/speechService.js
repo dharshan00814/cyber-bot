@@ -196,12 +196,11 @@ async function transcribeAudioWithGemini(wavBuffer) {
         return { success: false, error: 'GEMINI_API_KEY not configured' };
     }
 
-    try {
-        const { GoogleGenerativeAI } = require('@google/generative-ai');
-        const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({ model: 'gemini-3.6-flash' });
+    const { GoogleGenerativeAI } = require('@google/generative-ai');
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const candidateModels = ['gemini-3.5-flash', 'gemini-3.5-flash-lite', 'gemini-flash-latest', 'gemini-3.7-flash', 'gemini-3.6-flash'];
 
-        const prompt = `You are an AI meeting assistant listening to student voice audio in a learning group meeting.
+    const prompt = `You are an AI meeting assistant listening to student voice audio in a learning group meeting.
 The participants speak in English, Tamil (தமிழ்), or Tanglish (Tamil written in English alphabet).
 Listen carefully to the speech in this audio clip.
 1. Transcribe the words spoken as accurately as possible in the language spoken.
@@ -219,44 +218,55 @@ Respond ONLY with a valid JSON object in this exact format:
     "doubtText": "the extracted question or doubt, or empty string"
 }`;
 
-        const base64Audio = wavBuffer.toString('base64');
-        const result = await model.generateContent([
-            prompt,
-            {
-                inlineData: {
-                    mimeType: 'audio/wav',
-                    data: base64Audio,
-                },
-            },
-        ]);
+    const base64Audio = wavBuffer.toString('base64');
+    let lastError = null;
 
-        const responseText = result.response.text().trim();
-        const jsonMatch = responseText.match(/\{[\s\S]*\}/);
-        if (jsonMatch) {
-            const parsed = JSON.parse(jsonMatch[0]);
+    for (const modelName of candidateModels) {
+        try {
+            const model = genAI.getGenerativeModel({ model: modelName });
+            const result = await model.generateContent([
+                prompt,
+                {
+                    inlineData: {
+                        mimeType: 'audio/wav',
+                        data: base64Audio,
+                    },
+                },
+            ]);
+
+            const responseText = result.response.text().trim();
+            const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+            if (jsonMatch) {
+                const parsed = JSON.parse(jsonMatch[0]);
+                return {
+                    success: true,
+                    transcript: parsed.transcript || '',
+                    isBotMentioned: !!parsed.isBotMentioned,
+                    isDoubt: !!parsed.isDoubt,
+                    isTamil: !!parsed.isTamil,
+                    doubtText: parsed.doubtText || parsed.transcript || '',
+                    model: modelName,
+                };
+            }
+
+            const isTamil = /[\u0B80-\u0BFF]/.test(responseText);
             return {
                 success: true,
-                transcript: parsed.transcript || '',
-                isBotMentioned: !!parsed.isBotMentioned,
-                isDoubt: !!parsed.isDoubt,
-                isTamil: !!parsed.isTamil,
-                doubtText: parsed.doubtText || parsed.transcript || '',
+                transcript: responseText,
+                isBotMentioned: /cyber\s*bot|bot|சைபர்\s*பாட்|பாட்/i.test(responseText),
+                isDoubt: responseText.includes('?') || /how|what|why|explain|என்ன|எப்படி|சொல்லுங்க/i.test(responseText),
+                isTamil,
+                doubtText: responseText,
+                model: modelName,
             };
+        } catch (err) {
+            lastError = err;
+            console.warn(`[SpeechService] Model ${modelName} failed (${err.message?.substring(0, 70)}), trying next model...`);
         }
-
-        const isTamil = /[\u0B80-\u0BFF]/.test(responseText);
-        return {
-            success: true,
-            transcript: responseText,
-            isBotMentioned: /cyber\s*bot|bot|சைபர்\s*பாட்|பாட்/i.test(responseText),
-            isDoubt: responseText.includes('?') || /how|what|why|explain|என்ன|எப்படி|சொல்லுங்க/i.test(responseText),
-            isTamil,
-            doubtText: responseText,
-        };
-    } catch (err) {
-        console.error('[SpeechService] Gemini transcription error:', err.message);
-        return { success: false, error: err.message };
     }
+
+    console.error('[SpeechService] All Gemini models failed transcription:', lastError?.message);
+    return { success: false, error: lastError?.message || 'Transcription failed' };
 }
 
 function cleanupTempAudio(filePath) {

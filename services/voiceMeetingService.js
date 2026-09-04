@@ -352,8 +352,8 @@ class VoiceMeetingService {
         const transcriptionResult = await speechService.transcribeAudioWithGemini(wavBuffer);
 
         if (!transcriptionResult || !transcriptionResult.success) {
-            console.warn(`[VoiceMeeting] Audio captured from ${username} (${wavBuffer.length} bytes), but could not transcribe: ${transcriptionResult?.error || 'Transcription failed'}`);
-            if (transcriptionResult?.error === 'GEMINI_API_KEY not configured' && !this.geminiWarningGiven) {
+            console.warn(`[VoiceMeeting] Audio from ${username} (${wavBuffer.length} bytes): ${transcriptionResult?.error || 'No speech detected'}`);
+            if (!process.env.GEMINI_API_KEY && !this.geminiWarningGiven) {
                 this.geminiWarningGiven = true;
                 if (this.activeMeeting.textChannelId) {
                     const textChannel = client.channels.cache.get(this.activeMeeting.textChannelId);

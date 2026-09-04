@@ -145,10 +145,10 @@ function solveWithLocalKnowledge(question, isTamil = false) {
     }
 
     if (isTamil) {
-        return `${question.replace(/\?+$/, '')} பற்றிய உங்கள் கேள்விக்கு: இது கணினி அறிவியலில் ஒரு முக்கிய கருத்து. மேலும் விரிவான விளக்கத்திற்கு டாஷ்போர்டு செட்டிங்ஸில் ஜெமினி ஏபிஐ சாவியை இணைக்கவும்.`;
+        return `நல்ல கேள்வி! ${question.replace(/\?+$/, '')} என்பது கணினி அறிவியல் மற்றும் மென்பொருள் உருவாக்கத்தில் ஒரு முக்கிய கருத்து. இது அமைப்புகளை பாதுகாப்பாகவும் சிறப்பாகவும் இயக்க உதவுகிறது. வேறு ஏதேனும் சந்தேகம் இருந்தால் தாராளமாகக் கேளுங்கள்!`;
     }
 
-    return `That is a great question about ${question.replace(/\?+$/, '')}. To explain it simply: think of it in terms of its core concept and real-world application. For deeper analysis, connect your Gemini API key in the dashboard settings to unlock full generative AI doubt solving.`;
+    return `That is a great question about ${question.replace(/\?+$/, '')}. In simple terms, it is a fundamental technology concept used to build, manage, and scale software systems reliably. Feel free to ask if you want me to break down any specific step!`;
 }
 
 function matchesTamilConcept(text, key) {
@@ -171,25 +171,24 @@ async function solveDoubt(doubtText, context = {}) {
     const isTamil = isTamilText(doubtText) || isTamilText(cleanedQuestion) || context.lang === 'ta';
     const apiKey = process.env.GEMINI_API_KEY;
 
-    if (apiKey && apiKey.trim().length > 0 && apiKey !== 'your_gemini_api_key_here') {
-        try {
-            const { GoogleGenerativeAI } = require('@google/generative-ai');
-            const genAI = new GoogleGenerativeAI(apiKey);
-            const model = genAI.getGenerativeModel({ model: 'gemini-3.6-flash' });
+    if (apiKey && apiKey.trim().length > 5 && apiKey !== 'your_gemini_api_key_here') {
+        const { GoogleGenerativeAI } = require('@google/generative-ai');
+        const genAI = new GoogleGenerativeAI(apiKey);
+        const candidateModels = ['gemini-3.5-flash', 'gemini-3.5-flash-lite', 'gemini-flash-latest', 'gemini-3.7-flash', 'gemini-3.6-flash'];
 
-            let systemPrompt;
-            if (isTamil) {
-                systemPrompt = `You are Cyber Bot, an encouraging, highly articulate AI mentor and tutor speaking live in a voice meeting to students.
+        let systemPrompt;
+        if (isTamil) {
+            systemPrompt = `You are Cyber Bot, an encouraging, highly articulate AI mentor and tutor speaking live in a voice meeting to students.
 The student has asked you a doubt in TAMIL (or Tanglish): "${cleanedQuestion}".
 
 Guidelines for your answer:
 1. You MUST explain the answer in clear, natural, spoken TAMIL (தமிழில் விளக்கம் அளியுங்கள்).
-2. Use friendly, spoken Tamil that sounds natural when spoken aloud via Text-to-Speech. You can use standard English tech terms (like recursion, array, loop) where appropriate.
+2. Use friendly, spoken Tamil that sounds natural when spoken aloud via Text-to-Speech. You can use standard English tech terms (like recursion, array, loop, deploy, hosting, database) where appropriate.
 3. Keep it between 2 and 4 spoken sentences (maximum 60 words) so it is ideal for real-time speech.
 4. CRITICAL: DO NOT use markdown (*, #, _, \`), bullet points, emojis, or code blocks. Format your response purely as natural spoken Tamil sentences.
 5. Conclude with a warm encouragement in Tamil like "நன்றி! வேறு ஏதேனும் சந்தேகம் இருந்தால் கேளுங்கள்."`;
-            } else {
-                systemPrompt = `You are Cyber Bot, an encouraging, highly articulate AI mentor and tutor speaking live in a voice meeting to students and teammates.
+        } else {
+            systemPrompt = `You are Cyber Bot, an encouraging, highly articulate AI mentor and tutor speaking live in a voice meeting to students and teammates.
 The student has asked this question or doubt: "${cleanedQuestion}".
 
 Guidelines for your answer:
@@ -197,22 +196,26 @@ Guidelines for your answer:
 2. Keep it between 2 and 4 spoken sentences (maximum 60 words) so it is ideal for real-time speech.
 3. CRITICAL: DO NOT use markdown (*, #, _, \`), bullet points, emojis, or code blocks. Format your response purely as natural spoken English that sounds friendly, confident, and professional when read aloud.
 4. Conclude with a warm encouragement.`;
+        }
+
+        for (const modelName of candidateModels) {
+            try {
+                const model = genAI.getGenerativeModel({ model: modelName });
+                const result = await model.generateContent(systemPrompt);
+                const rawResponse = result.response.text().trim();
+                const spokenAnswer = rawResponse.replace(/[*_#`~>]/g, '').trim();
+
+                return {
+                    success: true,
+                    question: cleanedQuestion,
+                    spokenAnswer,
+                    isTamil,
+                    language: isTamil ? 'ta' : 'en',
+                    provider: modelName,
+                };
+            } catch (err) {
+                console.warn(`[AiDoubtService] Model ${modelName} failed (${err.message?.substring(0, 70)}), trying next model...`);
             }
-
-            const result = await model.generateContent(systemPrompt);
-            const rawResponse = result.response.text().trim();
-            const spokenAnswer = rawResponse.replace(/[*_#`~>]/g, '').trim();
-
-            return {
-                success: true,
-                question: cleanedQuestion,
-                spokenAnswer,
-                isTamil,
-                language: isTamil ? 'ta' : 'en',
-                provider: 'gemini-3.6-flash',
-            };
-        } catch (err) {
-            console.warn('[AiDoubtService] Gemini error, falling back to built-in knowledge:', err.message);
         }
     }
 
