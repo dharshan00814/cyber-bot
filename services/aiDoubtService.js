@@ -175,7 +175,7 @@ async function solveDoubt(doubtText, context = {}) {
         try {
             const { GoogleGenerativeAI } = require('@google/generative-ai');
             const genAI = new GoogleGenerativeAI(apiKey);
-            const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+            const model = genAI.getGenerativeModel({ model: 'gemini-3.6-flash' });
 
             let systemPrompt;
             if (isTamil) {
@@ -209,7 +209,7 @@ Guidelines for your answer:
                 spokenAnswer,
                 isTamil,
                 language: isTamil ? 'ta' : 'en',
-                provider: 'gemini-2.0-flash',
+                provider: 'gemini-3.6-flash',
             };
         } catch (err) {
             console.warn('[AiDoubtService] Gemini error, falling back to built-in knowledge:', err.message);

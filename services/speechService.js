@@ -199,7 +199,7 @@ async function transcribeAudioWithGemini(wavBuffer) {
     try {
         const { GoogleGenerativeAI } = require('@google/generative-ai');
         const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+        const model = genAI.getGenerativeModel({ model: 'gemini-3.6-flash' });
 
         const prompt = `You are an AI meeting assistant listening to student voice audio in a learning group meeting.
 The participants speak in English, Tamil (தமிழ்), or Tanglish (Tamil written in English alphabet).

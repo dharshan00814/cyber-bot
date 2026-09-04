@@ -32,8 +32,12 @@ module.exports = {
             return originalDeferReply(options);
         };
 
-        if (!interaction.deferred && !interaction.replied) {
-            await interaction.deferReply();
+        try {
+            if (!interaction.deferred && !interaction.replied) {
+                await interaction.deferReply();
+            }
+        } catch (deferErr) {
+            console.warn('[InteractionCreate] Notice on deferReply:', deferErr.message);
         }
 
         // Cooldown logic

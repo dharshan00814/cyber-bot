@@ -93,7 +93,9 @@ class VoiceMeetingService {
             throw new Error(`Voice channel ${channelId} not found.`);
         }
 
-        const textChannel = textChannelId ? guild.channels.cache.get(textChannelId) : null;
+        const textChannel = (textChannelId ? guild.channels.cache.get(textChannelId) : null)
+            || (voiceChannel.isTextBased && voiceChannel.isTextBased() ? voiceChannel : null)
+            || guild.channels.cache.find(c => c.isTextBased && c.isTextBased());
 
         console.log(`[VoiceMeeting] Joining voice channel: ${voiceChannel.name} (${voiceChannel.id})`);
 
