@@ -1002,6 +1002,34 @@ router.get('/meeting/voices', (req, res) => {
     }
 });
 
+router.get('/meeting/key-status', (req, res) => {
+    const hasKey = !!(process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY.trim().length > 5);
+    res.json({ success: true, hasGeminiKey: hasKey });
+});
+
+router.post('/meeting/save-key', (req, res) => {
+    const { key } = req.body;
+    if (key && typeof key === 'string' && key.trim().length > 5) {
+        process.env.GEMINI_API_KEY = key.trim();
+        try {
+            const envPath = path.join(__dirname, '..', '.env');
+            if (fs.existsSync(envPath)) {
+                let envContent = fs.readFileSync(envPath, 'utf8');
+                if (envContent.includes('GEMINI_API_KEY=')) {
+                    envContent = envContent.replace(/GEMINI_API_KEY=.*/, `GEMINI_API_KEY=${key.trim()}`);
+                } else {
+                    envContent += `\nGEMINI_API_KEY=${key.trim()}\n`;
+                }
+                fs.writeFileSync(envPath, envContent, 'utf8');
+            }
+        } catch (e) {
+            console.warn('[Dashboard] Could not update .env directly:', e.message);
+        }
+        return res.json({ success: true, message: 'Gemini API key saved and activated successfully!' });
+    }
+    return res.status(400).json({ error: 'Please enter a valid Gemini API key.' });
+});
+
 router.post('/meeting/join', async (req, res) => {
     try {
         const { channelId, guildId, textChannelId, voice } = req.body;

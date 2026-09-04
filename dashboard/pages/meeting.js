@@ -15,6 +15,7 @@ const pageMeeting = {
             this.fetchChannels(),
             this.fetchStatus(),
             this.fetchHistory(),
+            this.checkGeminiStatus(),
         ]);
         this.startLivePolling();
     },
@@ -51,6 +52,59 @@ const pageMeeting = {
         if (micBtn && !micBtn.dataset.bound) {
             micBtn.dataset.bound = 'true';
             micBtn.addEventListener('click', () => this.toggleMicrophone());
+        }
+
+        const saveGeminiBtn = document.getElementById('meeting-save-gemini-btn');
+        if (saveGeminiBtn && !saveGeminiBtn.dataset.bound) {
+            saveGeminiBtn.dataset.bound = 'true';
+            saveGeminiBtn.addEventListener('click', () => this.handleSaveGeminiKey());
+        }
+    },
+
+    async checkGeminiStatus() {
+        try {
+            const data = await api.get('/dashboard/meeting/key-status');
+            const statusEl = document.getElementById('meeting-gemini-status');
+            const inputEl = document.getElementById('meeting-gemini-key');
+            if (statusEl) {
+                if (data.hasGeminiKey) {
+                    statusEl.innerHTML = '<span style="color:#10b981; font-weight:600;">✅ Gemini Key Connected & Active!</span> In-Discord voice & generative doubts enabled.';
+                    if (inputEl) inputEl.placeholder = '•••••••••••••••••••• (Connected)';
+                } else {
+                    statusEl.innerHTML = '<span style="color:#f59e0b;">⚠️ No Gemini Key Set.</span> Add your key here or in <code>.env</code>.';
+                }
+            }
+        } catch (e) {
+            console.warn('Error checking Gemini key status:', e.message);
+        }
+    },
+
+    async handleSaveGeminiKey() {
+        const input = document.getElementById('meeting-gemini-key');
+        const key = input ? input.value.trim() : '';
+        if (!key) {
+            app.toast('Please enter a valid Gemini API key.', 'warning');
+            return;
+        }
+
+        const btn = document.getElementById('meeting-save-gemini-btn');
+        if (btn) {
+            btn.disabled = true;
+            btn.textContent = 'Saving...';
+        }
+
+        try {
+            const res = await api.post('/dashboard/meeting/save-key', { key });
+            app.toast(res.message || 'Gemini key saved successfully!', 'success');
+            if (input) input.value = '';
+            await this.checkGeminiStatus();
+        } catch (err) {
+            app.toast(err.message || 'Failed to save Gemini key', 'error');
+        } finally {
+            if (btn) {
+                btn.disabled = false;
+                btn.textContent = 'Save Key';
+            }
         }
     },
 
