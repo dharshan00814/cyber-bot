@@ -10,6 +10,10 @@ const Setting = require('../models/Settings');
 const { getJobs, getJob, updateJob, runJobNow } = require('../utils/schedulerRegistry');
 const { getSupabaseClient } = require('../utils/supabaseStore');
 const whatsAppService = require('../services/whatsapp');
+const voiceMeetingService = require('../services/voiceMeetingService');
+const speechService = require('../services/speechService');
+const aiDoubtService = require('../services/aiDoubtService');
+const MeetingSession = require('../models/MeetingSession');
 
 function buildResponse(success, data, error, statusCode = 200) {
     const response = { success };
@@ -959,6 +963,147 @@ router.post('/whatsapp/settings', async (req, res) => {
     } catch (error) {
         console.error('Error saving WhatsApp settings:', error);
         res.status(500).json({ error: error.message || 'Failed to save WhatsApp settings' });
+    }
+});
+
+// ==========================================
+// AI Voice Meeting Routes
+// ==========================================
+
+router.get('/meeting/status', (req, res) => {
+    try {
+        const status = voiceMeetingService.getStatus();
+        res.json({ success: true, ...status });
+    } catch (error) {
+        console.error('Error fetching meeting status:', error);
+        res.status(500).json({ error: error.message || 'Failed to get meeting status' });
+    }
+});
+
+router.get('/meeting/channels', (req, res) => {
+    try {
+        const channels = voiceMeetingService.getAvailableVoiceChannels(req.query.guildId);
+        res.json({ success: true, channels });
+    } catch (error) {
+        console.error('Error fetching voice channels:', error);
+        res.status(500).json({ error: error.message || 'Failed to get voice channels' });
+    }
+});
+
+router.get('/meeting/voices', (req, res) => {
+    try {
+        res.json({
+            success: true,
+            voices: speechService.AVAILABLE_VOICES,
+            currentVoice: process.env.TTS_VOICE || 'en-US-ChristopherNeural',
+        });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+router.post('/meeting/join', async (req, res) => {
+    try {
+        const { channelId, guildId, textChannelId, voice } = req.body;
+        if (!channelId) {
+            return res.status(400).json({ error: 'channelId is required' });
+        }
+
+        const result = await voiceMeetingService.joinMeeting({
+            channelId,
+            guildId,
+            textChannelId,
+            voice,
+        });
+
+        res.json(result);
+    } catch (error) {
+        console.error('Error joining meeting:', error);
+        res.status(500).json({ error: error.message || 'Failed to join voice meeting' });
+    }
+});
+
+router.post('/meeting/leave', async (req, res) => {
+    try {
+        const result = await voiceMeetingService.leaveMeeting();
+        res.json(result);
+    } catch (error) {
+        console.error('Error leaving meeting:', error);
+        res.status(500).json({ error: error.message || 'Failed to leave voice meeting' });
+    }
+});
+
+router.post('/meeting/ask', async (req, res) => {
+    try {
+        const { question } = req.body;
+        if (!question || !question.trim()) {
+            return res.status(400).json({ error: 'Question is required' });
+        }
+
+        let result;
+        if (voiceMeetingService.isActive()) {
+            result = await voiceMeetingService.askDoubt(question, 'Web Dashboard');
+        } else {
+            // If not currently in a voice channel, still resolve the doubt and return the answer
+            result = await aiDoubtService.solveDoubt(question);
+        }
+
+        const chosenVoice = result.isTamil ? 'ta-IN-PallaviNeural' : (process.env.TTS_VOICE || 'en-US-ChristopherNeural');
+        const audioUrl = `/api/dashboard/meeting/tts-audio?text=${encodeURIComponent(result.spokenAnswer)}&voice=${encodeURIComponent(chosenVoice)}`;
+
+        return res.json({
+            success: true,
+            spokenInDiscord: voiceMeetingService.isActive(),
+            audioUrl,
+            ...result,
+        });
+    } catch (error) {
+        console.error('Error answering doubt:', error);
+        res.status(500).json({ error: error.message || 'Failed to solve doubt' });
+    }
+});
+
+router.get('/meeting/tts-audio', async (req, res) => {
+    try {
+        const { text, voice } = req.query;
+        if (!text || !text.trim()) {
+            return res.status(400).json({ error: 'Text query parameter is required' });
+        }
+        const synth = await speechService.synthesizeSpeechToFile(text, { voice });
+        res.setHeader('Content-Type', 'audio/mpeg');
+        const stream = fs.createReadStream(synth.filePath);
+        stream.pipe(res);
+        stream.on('close', () => {
+            speechService.cleanupTempAudio(synth.filePath);
+        });
+    } catch (err) {
+        console.error('[Dashboard] TTS audio stream error:', err);
+        res.status(500).json({ error: 'Failed to generate audio stream' });
+    }
+});
+
+router.post('/meeting/test-tts', async (req, res) => {
+    try {
+        const { text, voice } = req.body;
+        const testText = text || 'Testing Cyber Bot text to speech voice synthesis.';
+        const result = await speechService.synthesizeSpeechToFile(testText, { voice });
+        // Clean up test file immediately
+        speechService.cleanupTempAudio(result.filePath);
+        res.json({ success: true, message: `TTS generated successfully using ${result.engine} with voice ${result.voice}` });
+    } catch (error) {
+        console.error('TTS test failed:', error);
+        res.status(500).json({ error: error.message || 'TTS synthesis failed' });
+    }
+});
+
+router.get('/meeting/history', async (req, res) => {
+    try {
+        const sessions = await MeetingSession.find().exec();
+        sessions.sort((a, b) => new Date(b.startTime) - new Date(a.startTime));
+        res.json({ success: true, sessions });
+    } catch (error) {
+        console.error('Error fetching meeting history:', error);
+        res.status(500).json({ error: error.message || 'Failed to fetch meeting history' });
     }
 });
 

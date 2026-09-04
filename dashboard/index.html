@@ -76,6 +76,12 @@
                     <span class="nav-label">Discord Channels</span>
                 </a>
 
+                <div class="nav-section">Voice & AI</div>
+                <a href="#" class="nav-item" data-page="meeting">
+                    <span class="nav-icon">🎙️</span>
+                    <span class="nav-label">Voice Meeting</span>
+                </a>
+
                 <div class="nav-section">External Services</div>
                 <a href="#" class="nav-item" data-page="whatsapp">
                     <span class="nav-icon">📱</span>
@@ -486,6 +492,218 @@
                     </div>
                 </section>
 
+                <section class="page-section" id="page-meeting">
+                    <!-- Live Meeting Banner -->
+                    <div class="card" style="margin-bottom: 20px; background: linear-gradient(135deg, rgba(16, 24, 40, 0.95), rgba(15, 23, 42, 0.98)); border: 1px solid rgba(0, 212, 255, 0.2);">
+                        <div class="card-body" style="padding: 24px;">
+                            <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 16px;">
+                                <div>
+                                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                                        <h3 style="margin: 0; font-size: 20px; font-weight: 700; color: var(--text-primary);">🎙️ AI Voice Meeting Assistant</h3>
+                                        <span id="meeting-status-badge" class="badge badge-warning">IDLE (NOT IN VOICE)</span>
+                                        <span id="meeting-bot-speaking-indicator" class="badge badge-success" style="display: none; animation: pulse 1.2s infinite;">🔊 Bot Speaking...</span>
+                                    </div>
+                                    <p style="margin: 0; color: var(--text-secondary); font-size: 14px;">
+                                        Track participant voices, record attendance in real time, and ask doubts aloud with speech-to-text & text-to-speech.
+                                    </p>
+                                </div>
+                                <div style="display: flex; gap: 16px; align-items: center;">
+                                    <div style="text-align: center; padding: 8px 16px; background: rgba(255,255,255,0.03); border-radius: 8px; border: 1px solid rgba(255,255,255,0.06);">
+                                        <span style="font-size: 11px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">Active Room</span>
+                                        <div id="meeting-active-channel-name" style="font-size: 15px; font-weight: 600; color: #00d4ff;">None</div>
+                                    </div>
+                                    <div style="text-align: center; padding: 8px 16px; background: rgba(255,255,255,0.03); border-radius: 8px; border: 1px solid rgba(255,255,255,0.06);">
+                                        <span style="font-size: 11px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">Meeting Time</span>
+                                        <div id="meeting-timer" style="font-size: 16px; font-weight: 700; font-family: monospace; color: var(--text-primary);">00:00</div>
+                                    </div>
+                                    <div style="text-align: center; padding: 8px 16px; background: rgba(255,255,255,0.03); border-radius: 8px; border: 1px solid rgba(255,255,255,0.06);">
+                                        <span style="font-size: 11px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">Attendees</span>
+                                        <div id="meeting-attendee-count" style="font-size: 16px; font-weight: 700; color: #10b981;">0</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Meeting Controls Grid -->
+                    <div class="cards-grid" style="margin-bottom: 20px;">
+                        <!-- Voice Channel Selector & Join Controls -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">Meeting Room Controls</h4>
+                            </div>
+                            <div class="card-body">
+                                <div class="form-group">
+                                    <label class="form-label">Discord Voice Channel</label>
+                                    <select class="form-select" id="meeting-channel-select">
+                                        <option value="">Loading voice channels...</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">TTS AI Voice (Spoken Speech)</label>
+                                    <div style="display: flex; gap: 8px;">
+                                        <select class="form-select" id="meeting-voice-select" style="flex: 1;">
+                                            <option value="">Loading voices...</option>
+                                        </select>
+                                        <button type="button" class="btn btn-secondary" id="meeting-test-tts-btn" title="Test Voice Output">
+                                            🔊 Test Voice
+                                        </button>
+                                    </div>
+                                </div>
+                                <div style="display: flex; gap: 10px; margin-top: 18px;">
+                                    <button class="btn btn-primary" id="meeting-join-btn" style="flex: 1; justify-content: center;">
+                                        🎙️ Join Meeting
+                                    </button>
+                                    <button class="btn btn-danger" id="meeting-leave-btn" disabled style="flex: 1; justify-content: center;">
+                                        ⏹️ Leave Meeting
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Live Voice Microphone & Zero-Command Spoken Doubt Console -->
+                        <div class="card" style="border: 1px solid rgba(0, 212, 255, 0.3); background: linear-gradient(145deg, rgba(16, 24, 40, 0.9), rgba(15, 23, 42, 0.95));">
+                            <div class="card-header" style="border-bottom: 1px solid rgba(0, 212, 255, 0.15);">
+                                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                                    <h4 class="card-title" style="margin: 0; display: flex; align-items: center; gap: 8px;">
+                                        🎙️ Speak Doubt to Bot
+                                        <span class="badge badge-success" style="font-size: 10px;">Zero Commands • Real-Time Voice</span>
+                                    </h4>
+                                    <!-- Language toggle for mic -->
+                                    <div style="display: flex; align-items: center; gap: 6px;">
+                                        <label style="font-size: 11px; color: var(--text-secondary); margin: 0;">Mic Language:</label>
+                                        <select id="meeting-mic-lang" class="form-select" style="padding: 3px 8px; font-size: 12px; width: auto; background: rgba(255,255,255,0.06);">
+                                            <option value="en-US">🌐 English</option>
+                                            <option value="ta-IN">🇮🇳 தமிழ் (Tamil)</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div style="display: flex; flex-direction: column; align-items: center; padding: 10px 0 16px 0;">
+                                    <button type="button" id="meeting-mic-toggle-btn" style="
+                                        width: 72px;
+                                        height: 72px;
+                                        border-radius: 50%;
+                                        border: 2px solid #00d4ff;
+                                        background: rgba(0, 212, 255, 0.1);
+                                        color: #00d4ff;
+                                        font-size: 28px;
+                                        cursor: pointer;
+                                        display: flex;
+                                        align-items: center;
+                                        justify-content: center;
+                                        transition: all 0.25s ease;
+                                        box-shadow: 0 0 15px rgba(0, 212, 255, 0.2);
+                                    " title="Click to speak your doubt">
+                                        🎙️
+                                    </button>
+                                    <div id="meeting-mic-status-text" style="font-size: 13px; font-weight: 600; margin-top: 10px; color: var(--text-secondary);">
+                                        Click microphone to start speaking
+                                    </div>
+                                    <div style="font-size: 11.5px; color: var(--text-secondary); margin-top: 2px;">
+                                        Just say <em>"Cyber Bot, what is..."</em> or <em>"சைபர் பாட், ..."</em>
+                                    </div>
+                                </div>
+
+                                <!-- Live Speech Preview Box -->
+                                <div id="meeting-live-speech-box" style="
+                                    display: none;
+                                    padding: 10px 14px;
+                                    background: rgba(0, 212, 255, 0.04);
+                                    border: 1px dashed rgba(0, 212, 255, 0.3);
+                                    border-radius: 8px;
+                                    margin-bottom: 12px;
+                                    font-size: 13px;
+                                    color: var(--text-primary);
+                                ">
+                                    <div style="font-size: 11px; color: #00d4ff; font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+                                        <span style="display:inline-block; width:6px; height:6px; border-radius:50%; background:#ef4444; animation:pulse 1s infinite;"></span>
+                                        LIVE SPEECH DETECTED:
+                                    </div>
+                                    <div id="meeting-live-speech-text" style="font-style: italic; color: #f8fafc;">
+                                        Listening...
+                                    </div>
+                                </div>
+
+                                <form id="meeting-ask-form" style="margin-top: 6px;">
+                                    <div class="form-group" style="margin-bottom: 8px;">
+                                        <div style="display: flex; gap: 8px;">
+                                            <input type="text" class="form-input" id="meeting-doubt-input" placeholder="Or type doubt here (e.g. What is recursion?)" required style="flex: 1;">
+                                            <button type="submit" class="btn btn-success" id="meeting-doubt-submit-btn">
+                                                🔊 Explain Aloud
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div style="display: flex; flex-wrap: wrap; gap: 6px; align-items: center;">
+                                        <span style="font-size: 11px; color: var(--text-secondary);">English:</span>
+                                        <button type="button" class="btn btn-secondary btn-sm" onclick="pageMeeting.setDoubtInput('Cyber Bot, what is recursion?')">Recursion</button>
+                                        <button type="button" class="btn btn-secondary btn-sm" onclick="pageMeeting.setDoubtInput('Cyber Bot, explain SQL Injection')">SQL Injection</button>
+                                        <button type="button" class="btn btn-secondary btn-sm" onclick="pageMeeting.setDoubtInput('Cyber Bot, what is binary search?')">Binary Search</button>
+                                        <span style="font-size: 11px; color: #00d4ff; margin-left: 6px;">தமிழ்:</span>
+                                        <button type="button" class="btn btn-secondary btn-sm" style="border-color: rgba(0,212,255,0.4);" onclick="pageMeeting.setDoubtInput('சைபர் பாட், ரெக்கர்ஷன் என்றால் என்ன?')">ரெக்கர்ஷன்</button>
+                                        <button type="button" class="btn btn-secondary btn-sm" style="border-color: rgba(0,212,255,0.4);" onclick="pageMeeting.setDoubtInput('பாட், SQL Injection பற்றி சொல்லுங்கள்')">SQL Injection</button>
+                                    </div>
+                                    <div style="margin-top: 10px; padding: 8px 10px; background: rgba(0, 212, 255, 0.05); border-left: 3px solid #00d4ff; border-radius: 4px; font-size: 11.5px; color: var(--text-secondary);">
+                                        <strong>🎙️ Voice Rule:</strong> Mention the bot name (<em>"Cyber bot..."</em> or <em>"சைபர் பாட்..."</em>) to trigger speaking. The bot speaks its answer aloud in Discord & here in the browser!
+                                    </div>
+                                </form>
+                                <div id="meeting-latest-answer" style="display: none;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Voice Attendees Grid -->
+                    <div class="card" style="margin-bottom: 20px;">
+                        <div class="card-header">
+                            <h4 class="card-title">👥 Live Voice Participants & Speaking Tracker</h4>
+                            <span style="font-size: 12px; color: var(--text-secondary);">Real-time microphone & speaking duration metrics</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="cards-grid" id="meeting-participants-grid" style="grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px;">
+                                <div style="text-align: center; padding: 20px; color: var(--text-secondary);">Loading participants...</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Live Transcripts and Past Sessions -->
+                    <div class="cards-grid">
+                        <!-- Live Transcripts Feed -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">💬 Live Meeting Transcript & Speech-to-Text</h4>
+                                <span class="badge badge-info" style="font-size: 10px;">Auto-scroll</span>
+                            </div>
+                            <div class="card-body" id="meeting-transcripts-feed" style="max-height: 380px; overflow-y: auto; padding-right: 6px;">
+                                <div style="text-align: center; padding: 20px; color: var(--text-secondary);">Connecting to transcript feed...</div>
+                            </div>
+                        </div>
+
+                        <!-- Past Meeting Sessions -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">📅 Past Meeting Sessions</h4>
+                                <button class="btn btn-secondary btn-sm" onclick="pageMeeting.fetchHistory()">↻ Refresh</button>
+                            </div>
+                            <div class="card-body" style="max-height: 380px; overflow-y: auto; padding: 0;">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Room</th>
+                                            <th>Date</th>
+                                            <th>Duration</th>
+                                            <th>Attendees</th>
+                                            <th>Logs</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="meeting-history-tbody">
+                                        <tr><td colspan="5" style="text-align:center; padding:20px;">Loading history...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </section>
 
                 <section class="page-section" id="page-settings">
                     <div class="tabs" id="settings-tabs">
@@ -494,6 +712,7 @@
                         <button class="tab" data-section="attendance">Attendance</button>
                         <button class="tab" data-section="leaderboard">Leaderboard</button>
                         <button class="tab" data-section="notifications">Notifications</button>
+                        <button class="tab" data-section="voice">Voice & AI</button>
                     </div>
                     <div class="card">
                         <div class="card-body" id="settings-content">
@@ -640,6 +859,7 @@
     <script src="pages/channels.js"></script>
     <script src="pages/whatsapp.js"></script>
     <script src="pages/services.js"></script>
+    <script src="pages/meeting.js"></script>
     <script src="pages/settings.js"></script>
     <script src="js/app.js"></script>
 </body>

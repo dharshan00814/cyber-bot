@@ -262,7 +262,9 @@ function sortRecords(records, sortSpec) {
 
 function matchesFilter(record, filter = {}) {
     return Object.entries(filter).every(([field, expectedValue]) => {
-        const actualValue = record[field] ?? record[toSnakeCase(field)];
+        const actualValue = field === '_id'
+            ? (record._id ?? record.id)
+            : (record[field] ?? record[toSnakeCase(field)]);
 
         if (expectedValue && typeof expectedValue === 'object' && !Array.isArray(expectedValue)) {
             if (Object.prototype.hasOwnProperty.call(expectedValue, '$gte')) {

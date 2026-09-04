@@ -35,6 +35,18 @@
       "last_active_date": "2026-08-30T16:38:36.379Z",
       "xp": 80,
       "completed_tasks": []
+    },
+    {
+      "user_id": "1464653401727045916",
+      "name": "dharshan.jm",
+      "role": "beginner",
+      "join_date": "2026-09-04T17:16:11.221Z",
+      "activity_score": 0,
+      "streak": 0,
+      "last_active_date": null,
+      "xp": 10,
+      "completed_tasks": [],
+      "id": "mem-mtn7tvmgsya9"
     }
   ],
   "progress": [
@@ -69,6 +81,15 @@
       "meeting_name": "Daily Standup",
       "check_in_time": "2026-08-30T16:38:36.379Z",
       "notes": "Attended remotely"
+    },
+    {
+      "member_id": "1464653401727045916",
+      "date": "2026-09-04T17:16:13.730Z",
+      "status": "present",
+      "meeting_name": "Weekly discussion",
+      "check_in_time": "2026-09-04T17:16:13.730Z",
+      "notes": "Attended AI Voice Meeting",
+      "id": "att-mtn7txk5aos6"
     }
   ],
   "announcements": [
@@ -116,7 +137,102 @@
       "value": "{\"progress\":\"\",\"announcement\":\"\",\"general\":\"\"}",
       "category": "channels",
       "updated_at": "2026-08-30T16:38:36.379Z"
+    },
+    {
+      "key": "whatsapp_default_group",
+      "value": "\"120363427684628308@g.us\"",
+      "category": "whatsapp",
+      "updated_at": "2026-09-04T17:06:42.112Z",
+      "id": "set-mtn7hoi65la5"
+    },
+    {
+      "key": "whatsapp_reminder_template",
+      "value": "\"🔔 *Reminder:* Cybersecurity daily session starts at 11:00 PM! Please join on time.\"",
+      "category": "whatsapp",
+      "updated_at": "2026-09-04T17:06:44.628Z",
+      "id": "set-mtn7hqfrxgl3"
     }
   ],
-  "playlists": []
+  "playlists": [],
+  "meeting_sessions": [
+    {
+      "guild_id": null,
+      "channel_id": null,
+      "channel_name": "Test Voice Channel",
+      "start_time": "2026-09-04T17:12:33.406Z",
+      "end_time": null,
+      "duration_seconds": 120,
+      "participants": [
+        {
+          "userId": "u-123",
+          "username": "TestUser",
+          "speakCount": 3,
+          "totalSpokenSeconds": 24
+        }
+      ],
+      "transcripts": [
+        {
+          "text": "What is an API?",
+          "isDoubt": true,
+          "botAnswer": "An API is an Application Programming Interface."
+        }
+      ],
+      "status": "ended",
+      "created_at": "2026-09-04T17:12:33.406Z",
+      "id": "mee-mtn7p7kabl13"
+    },
+    {
+      "guild_id": "1497878851693318204",
+      "channel_id": "1497878852586836170",
+      "channel_name": "Weekly discussion",
+      "start_time": "2026-09-04T17:16:08.708Z",
+      "end_time": "2026-09-04T17:22:33.350Z",
+      "duration_seconds": 374,
+      "participants": [
+        {
+          "userId": "1464653401727045916",
+          "username": "dharshan.jm",
+          "displayName": "Dharshan. J.M",
+          "speakCount": 20,
+          "totalSpokenSeconds": 22,
+          "attendedAt": "2026-09-04T17:16:08.708Z"
+        }
+      ],
+      "transcripts": [
+        {
+          "id": "tr-1788542419895-c2hs",
+          "timestamp": "2026-09-04T17:20:19.895Z",
+          "userId": "bot",
+          "username": "Cyber Bot",
+          "text": "Doubt: what is n8n",
+          "isDoubt": true,
+          "type": "doubt",
+          "botAnswer": "That is a great question about what is n8n. To explain it simply: think of it in terms of its core concept and real-world application. For deeper analysis, connect your Gemini API key in the dashboard settings to unlock full generative AI doubt solving."
+        },
+        {
+          "id": "tr-1788542489577-elwh",
+          "timestamp": "2026-09-04T17:21:29.577Z",
+          "userId": "bot",
+          "username": "Cyber Bot",
+          "text": "Doubt: What is SQL Injection?",
+          "isDoubt": true,
+          "type": "doubt",
+          "botAnswer": "Great question! SQL injection is a security vulnerability where an attacker manipulates SQL queries by inserting malicious input into form fields or parameters, allowing unauthorized database access or data theft. Let me know if you would like me to elaborate on any specific part."
+        },
+        {
+          "id": "tr-1788542519013-g1m6",
+          "timestamp": "2026-09-04T17:21:59.013Z",
+          "userId": "bot",
+          "username": "Cyber Bot",
+          "text": "Doubt: What is an API?",
+          "isDoubt": true,
+          "type": "doubt",
+          "botAnswer": "Great question! An API, or Application Programming Interface, is a set of rules and protocols that allows different software applications to communicate and exchange data with each other. Let me know if you would like me to elaborate on any specific part."
+        }
+      ],
+      "status": "ended",
+      "created_at": "2026-09-04T17:22:33.350Z",
+      "id": "mee-mtn822h4vej3"
+    }
+  ]
 }

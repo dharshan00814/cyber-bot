@@ -867,3 +867,14 @@
 .login-error.visible {
     display: block;
 }
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(1.18); }
+}
+
+.speaking-active {
+    border-color: #00d4ff !important;
+    background: rgba(0, 212, 255, 0.08) !important;
+    box-shadow: 0 0 15px rgba(0, 212, 255, 0.35) !important;
+}

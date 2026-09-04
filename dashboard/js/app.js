@@ -135,6 +135,7 @@ const app = {
             channels: window.pageChannels,
             whatsapp: window.pageWhatsApp,
             services: window.pageServices,
+            meeting: window.pageMeeting,
             settings: window.pageSettings,
         };
 

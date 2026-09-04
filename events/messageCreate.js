@@ -157,6 +157,88 @@ module.exports = {
             return;
         }
 
+        // Natural Doubt Handling: If user mentions bot in chat (e.g. "Cyber bot, what is recursion?" or "பாட், recursion na enna?"), answer without requiring commands!
+        const aiDoubtService = require('../services/aiDoubtService');
+        const voiceMeetingService = require('../services/voiceMeetingService');
+        const speechService = require('../services/speechService');
+        const fs = require('fs');
+        const botId = message.client.user?.id;
+
+        if (aiDoubtService.isBotMentioned(message.content, process.env.WAKE_WORD, botId)) {
+            try {
+                const doubtResult = await aiDoubtService.solveDoubt(message.content);
+                const answer = doubtResult.spokenAnswer;
+
+                // 1. If user is in a voice channel, auto-connect bot to their voice channel so it can speak directly to them!
+                const userVoiceChannel = message.member?.voice?.channel;
+                if (userVoiceChannel) {
+                    if (!voiceMeetingService.isActive() || (voiceMeetingService.activeMeeting && voiceMeetingService.activeMeeting.channelId !== userVoiceChannel.id)) {
+                        try {
+                            await voiceMeetingService.joinMeeting({
+                                guildId: message.guild.id,
+                                channelId: userVoiceChannel.id,
+                                textChannelId: message.channel.id,
+                            });
+                        } catch (joinErr) {
+                            console.warn('[MessageCreate] Auto-joining voice channel failed:', joinErr.message);
+                        }
+                    }
+                }
+
+                // 2. Synthesize spoken voice audio (Edge TTS / Google TTS with Tamil neural voice if Tamil)
+                const voice = doubtResult.isTamil ? 'ta-IN-PallaviNeural' : undefined;
+                let audioFilePath = null;
+                try {
+                    const synthResult = await speechService.synthesizeSpeechToFile(answer, { voice });
+                    audioFilePath = synthResult.filePath;
+                } catch (ttsErr) {
+                    console.warn('[MessageCreate] Spoken speech synthesis error:', ttsErr.message);
+                }
+
+                // 3. If bot is in a voice channel, speak the answer aloud live!
+                if (voiceMeetingService.isActive()) {
+                    const speakMeta = {
+                        type: 'doubt_answer',
+                        author: message.member?.displayName || message.author.username,
+                        question: doubtResult.question,
+                    };
+                    if (doubtResult.isTamil) {
+                        speakMeta.voice = 'ta-IN-PallaviNeural';
+                    }
+                    await voiceMeetingService.speak(answer, speakMeta);
+                }
+
+                // 4. Send Discord reply with text embed AND playable spoken audio file attached
+                const { EmbedBuilder, AttachmentBuilder } = require('discord.js');
+                const embed = new EmbedBuilder()
+                    .setTitle('💡 Doubt Clarified / சந்தேகம் தெளிவுபடுத்தப்பட்டது')
+                    .addFields(
+                        { name: 'Question / கேள்வி', value: doubtResult.question || message.content },
+                        { name: 'Spoken Explanation / விளக்கம்', value: answer }
+                    )
+                    .setColor(0x10b981)
+                    .setFooter({
+                        text: `Language: ${doubtResult.isTamil ? 'Tamil (தமிழ்)' : 'English'} • Source: ${doubtResult.provider} • 🔊 Speaking reply aloud`
+                    })
+                    .setTimestamp();
+
+                const replyPayload = { embeds: [embed] };
+                if (audioFilePath && fs.existsSync(audioFilePath)) {
+                    replyPayload.files = [
+                        new AttachmentBuilder(audioFilePath, {
+                            name: doubtResult.isTamil ? 'cyber_bot_tamil_speech.mp3' : 'cyber_bot_speech.mp3',
+                            description: 'Spoken voice explanation',
+                        }),
+                    ];
+                }
+
+                await message.reply(replyPayload);
+                return;
+            } catch (err) {
+                console.error('[MessageCreate] Error clarifying doubt:', err);
+            }
+        }
+
         const trackedChannel = resolveProgressChannel(message.channel);
 
         if (!trackedChannel) {
