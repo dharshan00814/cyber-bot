@@ -2,6 +2,8 @@ const {
     getSupabaseClient,
     createQuery,
     fetchTableRows,
+    saveTableRow,
+    deleteTableRow,
     matchesFilter,
     normalizeDate,
 } = require('../utils/supabaseStore');
@@ -9,7 +11,7 @@ const {
 class Progress {
     constructor(data = {}) {
         this._id = data.id || data._id || null;
-        this.userId = data.userId;
+        this.userId = data.userId || data.user_id;
         this.date = normalizeDate(data.date) || new Date();
         this.text = data.text;
     }
@@ -17,9 +19,10 @@ class Progress {
     static fromRow(row) {
         return new Progress({
             ...row,
-            id: row.id,
+            id: row.id || row._id,
             userId: row.user_id || row.userId,
             date: row.date,
+            text: row.text,
         });
     }
 
@@ -32,20 +35,9 @@ class Progress {
     }
 
     async save() {
-        const client = getSupabaseClient();
-
-        if (!client) {
-            throw new Error('Supabase is not configured');
-        }
-
         const row = this.toRow();
-        const { data, error } = await client.from('progress').insert(row).select('*').single();
-
-        if (error) {
-            throw error;
-        }
-
-        Object.assign(this, Progress.fromRow(data));
+        const savedData = await saveTableRow('progress', row, this._id);
+        Object.assign(this, Progress.fromRow(savedData));
         return this;
     }
 
@@ -54,6 +46,35 @@ class Progress {
             const rows = await fetchTableRows('progress');
             return rows.filter(row => matchesFilter(row, filter)).map(Progress.fromRow);
         });
+    }
+
+    static async findOne(filter = {}) {
+        const records = await Progress.find(filter).limit(1);
+        return records[0] || null;
+    }
+
+    static async findOneAndDelete(filter = {}) {
+        const record = await Progress.findOne(filter);
+
+        if (!record) {
+            return null;
+        }
+
+        await deleteTableRow('progress', record._id);
+        return record;
+    }
+
+    static async findOneAndUpdate(filter = {}, update = {}, options = {}) {
+        const record = await Progress.findOne(filter);
+
+        if (!record) {
+            return null;
+        }
+
+        const updateData = update.$set || update;
+        Object.assign(record, updateData);
+        await record.save();
+        return options.new === false ? null : record;
     }
 }
 

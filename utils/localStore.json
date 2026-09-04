@@ -1,0 +1,122 @@
+{
+  "members": [
+    {
+      "id": "m-1",
+      "user_id": "123456789012345678",
+      "name": "Alex Developer",
+      "role": "organizer",
+      "join_date": "2026-07-31T16:38:36.378Z",
+      "activity_score": 15,
+      "streak": 5,
+      "last_active_date": "2026-08-30T16:38:36.379Z",
+      "xp": 250,
+      "completed_tasks": []
+    },
+    {
+      "id": "m-2",
+      "user_id": "234567890123456789",
+      "name": "Sarah Connor",
+      "role": "advanced",
+      "join_date": "2026-08-10T16:38:36.379Z",
+      "activity_score": 12,
+      "streak": 3,
+      "last_active_date": "2026-08-30T16:38:36.379Z",
+      "xp": 190,
+      "completed_tasks": []
+    },
+    {
+      "id": "m-3",
+      "user_id": "345678901234567890",
+      "name": "John Doe",
+      "role": "beginner",
+      "join_date": "2026-08-20T16:38:36.379Z",
+      "activity_score": 8,
+      "streak": 2,
+      "last_active_date": "2026-08-30T16:38:36.379Z",
+      "xp": 80,
+      "completed_tasks": []
+    }
+  ],
+  "progress": [
+    {
+      "id": "p-1",
+      "user_id": "123456789012345678",
+      "date": "2026-08-30T16:38:36.379Z",
+      "text": "Completed chapter 3 cyber security challenge and documented writeup"
+    },
+    {
+      "id": "p-2",
+      "user_id": "234567890123456789",
+      "date": "2026-08-30T15:38:36.379Z",
+      "text": "Solved SQL injection room on TryHackMe with 100% flags"
+    }
+  ],
+  "attendance": [
+    {
+      "id": "a-1",
+      "member_id": "123456789012345678",
+      "date": "2026-08-30T16:38:36.379Z",
+      "status": "present",
+      "meeting_name": "Daily Standup",
+      "check_in_time": "2026-08-30T16:38:36.379Z",
+      "notes": "On time"
+    },
+    {
+      "id": "a-2",
+      "member_id": "234567890123456789",
+      "date": "2026-08-30T16:38:36.379Z",
+      "status": "present",
+      "meeting_name": "Daily Standup",
+      "check_in_time": "2026-08-30T16:38:36.379Z",
+      "notes": "Attended remotely"
+    }
+  ],
+  "announcements": [
+    {
+      "id": "ann-1",
+      "title": "Welcome to Cyber Bot!",
+      "message": "Welcome everyone! Daily progress tracking is active. Post your daily updates in the progress channel.",
+      "channel_id": "",
+      "status": "sent",
+      "sent_at": "2026-08-30T16:38:36.379Z",
+      "created_by": "system",
+      "enable_notification": true
+    },
+    {
+      "title": "testing",
+      "message": "hi everyone",
+      "channel_id": "1499821260333387989",
+      "scheduled_at": null,
+      "sent_at": null,
+      "created_by": "dashboard-admin",
+      "status": "draft",
+      "mention_role": null,
+      "enable_notification": true,
+      "id": "ann-mtg1ln7m7qqz"
+    }
+  ],
+  "settings": [
+    {
+      "id": "s-1",
+      "key": "bot_prefix",
+      "value": "\"!\"",
+      "category": "bot",
+      "updated_at": "2026-08-30T16:38:36.379Z"
+    },
+    {
+      "id": "s-2",
+      "key": "daily_xp_reward",
+      "value": "10",
+      "category": "progress",
+      "updated_at": "2026-08-30T16:38:36.379Z"
+    },
+    {
+      "id": "s-3",
+      "key": "channels",
+      "value": "{\"progress\":\"\",\"announcement\":\"\",\"general\":\"\"}",
+      "category": "channels",
+      "updated_at": "2026-08-30T16:38:36.379Z"
+    }
+  ],
+  "playlists": []
+}

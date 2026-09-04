@@ -2,6 +2,8 @@ const {
     getSupabaseClient,
     createQuery,
     fetchTableRows,
+    saveTableRow,
+    deleteTableRow,
     matchesFilter,
     normalizeDate,
 } = require('../utils/supabaseStore');
@@ -57,28 +59,9 @@ class Member {
     }
 
     async save() {
-        const client = getSupabaseClient();
-
-        if (!client) {
-            throw new Error('Supabase is not configured');
-        }
-
         const row = this.toRow();
-        let response;
-
-        if (this._id) {
-            response = await client.from('members').update(row).eq('id', this._id).select('*').single();
-        } else {
-            response = await client.from('members').upsert(row, { onConflict: 'user_id' }).select('*').single();
-        }
-
-        const { data, error } = response;
-
-        if (error) {
-            throw error;
-        }
-
-        Object.assign(this, Member.fromRow(data));
+        const savedData = await saveTableRow('members', row, this._id, 'user_id');
+        Object.assign(this, Member.fromRow(savedData));
         return this;
     }
 
@@ -101,13 +84,7 @@ class Member {
             return null;
         }
 
-        const client = getSupabaseClient();
-        const { error } = await client.from('members').delete().eq('id', member._id);
-
-        if (error) {
-            throw error;
-        }
-
+        await deleteTableRow('members', member._id);
         return member;
     }
 

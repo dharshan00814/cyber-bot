@@ -5,6 +5,9 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
+    "dev": "node index.js",
+    "build": "echo Dashboard is static - no build step required",
+    "dashboard": "start http://localhost:3000",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -13,10 +16,14 @@
   "type": "commonjs",
   "dependencies": {
     "@supabase/supabase-js": "^2.105.1",
+    "@whiskeysockets/baileys": "^7.0.0-rc14",
     "discord.js": "^14.26.4",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
+    "express-session": "^1.18.0",
     "googleapis": "^171.4.0",
-    "node-cron": "^4.2.1"
+    "node-cron": "^4.2.1",
+    "pino": "^10.3.1",
+    "qrcode": "^1.5.4"
   }
 }

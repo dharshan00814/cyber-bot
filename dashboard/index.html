@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cyber Bot - Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="css/responsive.css">
+</head>
+<body>
+    <div id="login-screen" class="login-container" style="display: none;">
+        <div class="login-card">
+            <div class="login-logo">CB</div>
+            <h1 class="login-title">Cyber Bot</h1>
+            <p class="login-subtitle">Student Progress & Discord Management</p>
+            <div id="login-error" class="login-error"></div>
+            <form class="login-form" id="login-form">
+                <div class="form-group">
+                    <label class="form-label">Admin Password</label>
+                    <input type="password" class="form-input" id="login-password" placeholder="Enter admin password" required>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; padding: 12px;">
+                    Sign In
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div id="dashboard-screen" style="display: none;">
+        <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">CB</div>
+                <div class="sidebar-brand">
+                    <h1>CYBER BOT</h1>
+                    <span>Student Progress & Discord Management</span>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item active" data-page="dashboard">
+                    <span class="nav-icon">🏠</span>
+                    <span class="nav-label">Dashboard</span>
+                </a>
+                <a href="#" class="nav-item" data-page="members">
+                    <span class="nav-icon">👥</span>
+                    <span class="nav-label">Members</span>
+                </a>
+                <a href="#" class="nav-item" data-page="progress">
+                    <span class="nav-icon">📈</span>
+                    <span class="nav-label">Progress</span>
+                </a>
+                <a href="#" class="nav-item" data-page="attendance">
+                    <span class="nav-icon">📅</span>
+                    <span class="nav-label">Attendance</span>
+                </a>
+                <a href="#" class="nav-item" data-page="leaderboard">
+                    <span class="nav-icon">🏆</span>
+                    <span class="nav-label">Leaderboard</span>
+                </a>
+                <a href="#" class="nav-item" data-page="announcements">
+                    <span class="nav-icon">📢</span>
+                    <span class="nav-label">Announcements</span>
+                </a>
+                <a href="#" class="nav-item" data-page="scheduler">
+                    <span class="nav-icon">⏰</span>
+                    <span class="nav-label">Scheduler</span>
+                </a>
+                <a href="#" class="nav-item" data-page="channels">
+                    <span class="nav-icon">💬</span>
+                    <span class="nav-label">Discord Channels</span>
+                </a>
+
+                <div class="nav-section">External Services</div>
+                <a href="#" class="nav-item" data-page="whatsapp">
+                    <span class="nav-icon">📱</span>
+                    <span class="nav-label">WhatsApp Group</span>
+                </a>
+                <a href="#" class="nav-item" data-page="services">
+                    <span class="nav-icon">📺</span>
+                    <span class="nav-label">YouTube / External Services</span>
+                </a>
+
+                <div class="nav-section">Configuration</div>
+                <a href="#" class="nav-item" data-page="settings">
+                    <span class="nav-icon">⚙️</span>
+                    <span class="nav-label">Settings</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="sidebar-profile" id="admin-profile">
+                    <div class="avatar">A</div>
+                    <span>Administrator</span>
+                </div>
+                <button class="nav-item" id="logout-btn" style="width: 100%; margin-top: 4px;">
+                    <span class="nav-icon">🚪</span>
+                    <span class="nav-label">Logout</span>
+                </button>
+            </div>
+        </aside>
+
+        <div class="main-content">
+            <header class="top-bar">
+                <div class="top-bar-left">
+                    <button class="menu-toggle" id="menu-toggle">☰</button>
+                    <h2 class="page-title">Dashboard</h2>
+                </div>
+                <div class="top-bar-right">
+                    <div class="bot-status-indicator" id="bot-status">
+                        <span class="status-dot" id="status-dot"></span>
+                        <span id="status-text">Loading...</span>
+                    </div>
+                </div>
+            </header>
+
+            <main class="content-area">
+                <section class="page-section active" id="page-dashboard">
+                    <div class="stats-grid" id="dashboard-stats"></div>
+                    <div class="cards-grid">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">Bot Status</h3>
+                            </div>
+                            <div class="card-body" id="bot-status-details">
+                                <div class="loading-spinner"></div>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">Recent Activity</h3>
+                            </div>
+                            <div class="card-body" id="recent-activity">
+                                <div class="loading-spinner"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Quick Actions</h3>
+                        </div>
+                        <div class="card-body" style="display: flex; flex-wrap: wrap; gap: 10px;">
+                            <button class="btn btn-primary" onclick="app.navigateTo('members')">👥 Add Member</button>
+                            <button class="btn btn-secondary" onclick="app.navigateTo('progress')">📈 Add Progress</button>
+                            <button class="btn btn-secondary" onclick="app.showModal('modal-meeting')">📅 Create Meeting</button>
+                            <button class="btn btn-secondary" onclick="app.navigateTo('announcements')">📢 Send Announcement</button>
+                            <button class="btn btn-secondary" onclick="app.navigateTo('whatsapp')">📱 WhatsApp Reminder</button>
+                            <button class="btn btn-secondary" onclick="app.navigateTo('scheduler')">⏰ Schedule Reminder</button>
+                            <button class="btn btn-secondary" onclick="app.navigateTo('leaderboard')">🏆 Adjust Points</button>
+                        </div>
+                    </div>
+
+                </section>
+
+                <section class="page-section" id="page-members">
+                    <div class="search-bar">
+                        <div class="search-input-wrapper">
+                            <span class="search-icon">🔍</span>
+                            <input type="text" class="search-input" id="members-search" placeholder="Search members...">
+                        </div>
+                        <button class="btn btn-primary" onclick="pageMembers.openAddModal()">+ Add Member</button>
+                    </div>
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="data-table" id="members-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Member</th>
+                                            <th>Role</th>
+                                            <th>Join Date</th>
+                                            <th>XP</th>
+                                            <th>Status</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="members-tbody">
+                                        <tr><td colspan="6" style="text-align:center;padding:40px;"><div class="loading-spinner" style="margin:0 auto;"></div></td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="page-section" id="page-progress">
+                    <div class="search-bar">
+                        <div class="search-input-wrapper">
+                            <span class="search-icon">🔍</span>
+                            <input type="text" class="search-input" id="progress-search" placeholder="Search progress...">
+                        </div>
+                        <button class="btn btn-primary" onclick="pageProgress.openAddModal()">+ Add Progress</button>
+                    </div>
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="data-table" id="progress-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Student</th>
+                                            <th>Date</th>
+                                            <th>Description</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="progress-tbody">
+                                        <tr><td colspan="4" style="text-align:center;padding:40px;"><div class="loading-spinner" style="margin:0 auto;"></div></td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="page-section" id="page-attendance">
+                    <div class="stats-grid" id="attendance-stats" style="margin-bottom: 20px;"></div>
+                    <div class="search-bar">
+                        <div class="search-input-wrapper">
+                            <span class="search-icon">🔍</span>
+                            <input type="text" class="search-input" id="attendance-search" placeholder="Search attendance...">
+                        </div>
+                        <button class="btn btn-primary" onclick="pageAttendance.openMeetingModal()">+ Create Meeting</button>
+                    </div>
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="data-table" id="attendance-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Student</th>
+                                            <th>Status</th>
+                                            <th>Check-in</th>
+                                            <th>Meeting</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="attendance-tbody">
+                                        <tr><td colspan="5" style="text-align:center;padding:40px;"><div class="loading-spinner" style="margin:0 auto;"></div></td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="page-section" id="page-leaderboard">
+                    <div class="tabs" id="leaderboard-tabs">
+                        <button class="tab active" data-period="all">All Time</button>
+                        <button class="tab" data-period="today">Today</button>
+                        <button class="tab" data-period="week">This Week</button>
+                        <button class="tab" data-period="month">This Month</button>
+                    </div>
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="data-table" id="leaderboard-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Rank</th>
+                                            <th>Member</th>
+                                            <th>XP</th>
+                                            <th>Activity</th>
+                                            <th>Streak</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="leaderboard-tbody">
+                                        <tr><td colspan="5" style="text-align:center;padding:40px;"><div class="loading-spinner" style="margin:0 auto;"></div></td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="page-section" id="page-announcements">
+                    <div class="search-bar">
+                        <button class="btn btn-primary" onclick="pageAnnouncements.openAddModal()">+ New Announcement</button>
+                    </div>
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="data-table" id="announcements-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Title</th>
+                                            <th>Status</th>
+                                            <th>Scheduled</th>
+                                            <th>Sent</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="announcements-tbody">
+                                        <tr><td colspan="5" style="text-align:center;padding:40px;"><div class="loading-spinner" style="margin:0 auto;"></div></td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="page-section" id="page-scheduler">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Scheduled Tasks</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="data-table" id="scheduler-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Task</th>
+                                            <th>Schedule</th>
+                                            <th>Status</th>
+                                            <th>Last Run</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="scheduler-tbody">
+                                        <tr><td colspan="5" style="text-align:center;padding:40px;"><div class="loading-spinner" style="margin:0 auto;"></div></td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="page-section" id="page-channels">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Discord Channel Configuration</h3>
+                        </div>
+                        <div class="card-body">
+                            <form id="channels-form">
+                                <div class="form-group">
+                                    <label class="form-label">Progress Channel</label>
+                                    <select class="form-select" id="channel-progress">
+                                        <option value="">Select a channel...</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Announcement Channel</label>
+                                    <select class="form-select" id="channel-announcement">
+                                        <option value="">Select a channel...</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">General Channel</label>
+                                    <select class="form-select" id="channel-general">
+                                        <option value="">Select a channel...</option>
+                                    </select>
+                                </div>
+                                <button type="submit" class="btn btn-primary">Save Configuration</button>
+                            </form>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="page-section" id="page-whatsapp">
+                    <div class="cards-grid">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">WhatsApp Connection</h3>
+                                <span class="badge badge-info" id="wa-status-badge">CHECKING...</span>
+                            </div>
+                            <div class="card-body">
+                                <div id="wa-user-details">
+                                    <div class="loading-spinner"></div>
+                                </div>
+                                <div id="wa-qr-container" style="display: none; text-align: center; margin: 20px 0; padding: 16px; background: white; border-radius: 12px; max-width: 312px; margin-left: auto; margin-right: auto; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+                                    <img id="wa-qr-image" src="" alt="WhatsApp QR Code" style="width: 280px; height: 280px; display: block; margin: 0 auto;">
+                                    <p style="color: #475569; font-size: 12px; margin-top: 8px; font-weight: 500;">Point WhatsApp camera at this QR code</p>
+                                </div>
+                                <div style="display: flex; gap: 10px; margin-top: 16px;">
+                                    <button class="btn btn-primary btn-sm" id="wa-connect-btn" onclick="pageWhatsApp.connectWhatsApp()">Connect WhatsApp</button>
+                                    <button class="btn btn-secondary btn-sm" id="wa-disconnect-btn" style="color: var(--red); display: none;" onclick="pageWhatsApp.disconnectWhatsApp()">Disconnect / Logout</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">Send Group Reminder</h3>
+                                <button class="btn btn-secondary btn-sm" id="wa-refresh-groups-btn">🔄 Refresh Groups</button>
+                            </div>
+                            <div class="card-body">
+                                <form id="wa-send-form" onsubmit="event.preventDefault(); pageWhatsApp.sendReminder();">
+                                    <div class="form-group">
+                                        <label class="form-label">Target WhatsApp Group</label>
+                                        <select class="form-select" id="wa-send-group" required>
+                                            <option value="">Loading groups...</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Quick Template</label>
+                                        <select class="form-select" id="wa-preset-templates">
+                                            <option value="">Choose a template (optional)...</option>
+                                            <option value="🔔 *Meeting Reminder:* Daily Standup meeting starts in 15 minutes! Please join the call on time.">Meeting in 15 Mins</option>
+                                            <option value="📢 *Daily Progress Reminder:* Don't forget to submit your daily cybersecurity progress updates in the Discord channel today to keep your streak!">Daily Progress Submission</option>
+                                            <option value="🎉 *Leaderboard Update:* The weekly leaderboard standings have been refreshed! Check out the top contributors.">Leaderboard Announcement</option>
+                                            <option value="⚠️ *Attendance Alert:* Please mark your attendance for today's session.">Attendance Alert</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Reminder Message</label>
+                                        <textarea class="form-textarea" id="wa-message" rows="4" placeholder="Enter message to send to the WhatsApp group..." required></textarea>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary" id="wa-send-btn">📤 Send Reminder Now</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card" style="margin-top: 20px;">
+                        <div class="card-header">
+                            <h3 class="card-title">Automated Daily Group Reminder</h3>
+                            <span class="badge badge-info">Cron Job: 6:45 PM Daily</span>
+                        </div>
+                        <div class="card-body">
+                            <form id="wa-settings-form" onsubmit="event.preventDefault(); pageWhatsApp.saveSettings();">
+                                <p style="color: var(--text-secondary); font-size: 13px; margin-bottom: 16px;">
+                                    Configure the default WhatsApp group and template that will be triggered by the background scheduler before daily sessions.
+                                </p>
+                                <div class="form-group">
+                                    <label class="form-label">Default Target Group</label>
+                                    <select class="form-select" id="wa-default-group">
+                                        <option value="">Select a default group...</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Default Scheduled Reminder Template</label>
+                                    <textarea class="form-textarea" id="wa-reminder-template" rows="3" placeholder="🔔 *Reminder:* Cybersecurity daily session starts at 7:00 PM! Please join on time."></textarea>
+                                </div>
+                                <button type="submit" class="btn btn-primary" id="wa-save-settings-btn">Save Configuration</button>
+                            </form>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="page-section" id="page-services">
+                    <div class="cards-grid">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">WhatsApp Integration</h3>
+                                <span class="badge badge-info" id="whatsapp-status">Checking...</span>
+                            </div>
+                            <div class="card-body">
+                                <p style="color: var(--text-secondary); font-size: 14px;">Multi-device WhatsApp client for sending group reminders.</p>
+                                <button class="btn btn-secondary btn-sm" onclick="pageServices.testConnection('whatsapp')" style="margin-top: 12px;">Test Connection</button>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">YouTube API</h3>
+                                <span class="badge badge-info" id="youtube-status">Checking...</span>
+                            </div>
+                            <div class="card-body">
+                                <p style="color: var(--text-secondary); font-size: 14px;">Used for fetching playlist videos and managing YouTube integrations.</p>
+                                <button class="btn btn-secondary btn-sm" onclick="pageServices.testConnection('youtube')" style="margin-top: 12px;">Test Connection</button>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">Supabase</h3>
+                                <span class="badge badge-info" id="supabase-status">Checking...</span>
+                            </div>
+                            <div class="card-body">
+                                <p style="color: var(--text-secondary); font-size: 14px;">Primary database for member records, progress, and attendance.</p>
+                                <button class="btn btn-secondary btn-sm" onclick="pageServices.testConnection('supabase')" style="margin-top: 12px;">Test Connection</button>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">Discord API</h3>
+                                <span class="badge badge-info" id="discord-status">Checking...</span>
+                            </div>
+                            <div class="card-body">
+                                <p style="color: var(--text-secondary); font-size: 14px;">Connected to Discord server for bot operations.</p>
+                                <button class="btn btn-secondary btn-sm" onclick="pageServices.testConnection('discord')" style="margin-top: 12px;">Test Connection</button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+
+                <section class="page-section" id="page-settings">
+                    <div class="tabs" id="settings-tabs">
+                        <button class="tab active" data-section="bot">Bot</button>
+                        <button class="tab" data-section="progress">Progress</button>
+                        <button class="tab" data-section="attendance">Attendance</button>
+                        <button class="tab" data-section="leaderboard">Leaderboard</button>
+                        <button class="tab" data-section="notifications">Notifications</button>
+                    </div>
+                    <div class="card">
+                        <div class="card-body" id="settings-content">
+                            <div class="loading-spinner"></div>
+                        </div>
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
+
+    <div class="toast-container" id="toast-container"></div>
+
+    <div class="modal-overlay" id="modal-meeting">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title">Create Meeting</h3>
+                <button class="modal-close" onclick="app.hideModal('modal-meeting')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="meeting-form">
+                    <div class="form-group">
+                        <label class="form-label">Meeting Name</label>
+                        <input type="text" class="form-input" id="meeting-name" placeholder="e.g. Daily Standup" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Date</label>
+                        <input type="date" class="form-input" id="meeting-date" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                <button class="btn btn-primary" onclick="pageAttendance.createMeeting()">Create</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modal-member">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modal-member-title">Add Member</h3>
+                <button class="modal-close" onclick="app.hideModal('modal-member')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="member-form">
+                    <input type="hidden" id="member-id">
+                    <div class="form-group">
+                        <label class="form-label">Discord User ID</label>
+                        <input type="text" class="form-input" id="member-userid" placeholder="123456789012345678" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Display Name</label>
+                        <input type="text" class="form-input" id="member-name" placeholder="John Doe" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Role</label>
+                        <select class="form-select" id="member-role">
+                            <option value="beginner">Beginner</option>
+                            <option value="intermediate">Intermediate</option>
+                            <option value="advanced">Advanced</option>
+                            <option value="organizer">Organizer</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                <button class="btn btn-primary" id="member-save-btn">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modal-progress">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modal-progress-title">Add Progress</h3>
+                <button class="modal-close" onclick="app.hideModal('modal-progress')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="progress-form">
+                    <input type="hidden" id="progress-id">
+                    <div class="form-group">
+                        <label class="form-label">User ID</label>
+                        <input type="text" class="form-input" id="progress-userid" placeholder="123456789012345678" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Progress Text</label>
+                        <textarea class="form-textarea" id="progress-text" placeholder="Describe progress..." required></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                <button class="btn btn-primary" id="progress-save-btn">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modal-announcement">
+        <div class="modal" style="max-width: 600px;">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modal-announcement-title">New Announcement</h3>
+                <button class="modal-close" onclick="app.hideModal('modal-announcement')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="announcement-form">
+                    <input type="hidden" id="announcement-id">
+                    <div class="form-group">
+                        <label class="form-label">Title</label>
+                        <input type="text" class="form-input" id="announcement-title" placeholder="Announcement title" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Message</label>
+                        <textarea class="form-textarea" id="announcement-message" placeholder="Announcement message..." required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Channel</label>
+                        <select class="form-select" id="announcement-channel">
+                            <option value="">Select channel...</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Schedule (optional)</label>
+                        <input type="datetime-local" class="form-input" id="announcement-schedule">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                <button class="btn btn-primary" id="announcement-save-btn">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script src="pages/dashboard.js"></script>
+    <script src="pages/members.js"></script>
+    <script src="pages/progress.js"></script>
+    <script src="pages/attendance.js"></script>
+    <script src="pages/leaderboard.js"></script>
+    <script src="pages/announcements.js"></script>
+    <script src="pages/scheduler.js"></script>
+    <script src="pages/channels.js"></script>
+    <script src="pages/whatsapp.js"></script>
+    <script src="pages/services.js"></script>
+    <script src="pages/settings.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

@@ -1,31 +1,98 @@
 const cron = require('node-cron');
 const Playlist = require('../models/Playlist');
 const Member = require('../models/Member');
+const Setting = require('../models/Settings');
+const { registerJob, recordJobExecution } = require('../utils/schedulerRegistry');
+const whatsAppService = require('./whatsapp');
 
 function startScheduler(client) {
-    // Schedule a task every day at 6 PM (18:00) server time
-    cron.schedule('0 18 * * *', async () => {
-        console.log('Running daily scheduler at 6 PM...');
-        try {
-            await processPlaylists(client);
-            // Points are now awarded only when members post progress updates (via messageCreate event)
-            // await awardDailyPoints(client);
-            await resetDailyTasks(client);
-        } catch (error) {
-            console.error('Error in daily scheduler:', error);
-        }
-    });
+    registerJob(
+        'daily-playlist',
+        'Daily Playlist Processing',
+        '0 18 * * *',
+        async () => {
+            console.log('Running daily playlist scheduler at 6 PM...');
+            try {
+                await processPlaylists(client);
+                await resetDailyTasks(client);
+                recordJobExecution('daily-playlist', 'success');
+            } catch (error) {
+                console.error('Error in daily scheduler:', error);
+                recordJobExecution('daily-playlist', 'error');
+            }
+        },
+        { start: true }
+    );
 
-    // Schedule announcement every day at 7 PM (19:00) server time
-    cron.schedule('0 19 * * *', async () => {
-        console.log('Sending daily announcement at 7 PM...');
-        try {
-            await sendDailyAnnouncement(client);
-        } catch (error) {
-            console.error('Error sending daily announcement:', error);
-        }
-    });
+    registerJob(
+        'daily-announcement',
+        'Daily Announcement',
+        '0 19 * * *',
+        async () => {
+            console.log('Sending daily announcement at 7 PM...');
+            try {
+                await sendDailyAnnouncement(client);
+                recordJobExecution('daily-announcement', 'success');
+            } catch (error) {
+                console.error('Error sending daily announcement:', error);
+                recordJobExecution('daily-announcement', 'error');
+            }
+        },
+        { start: true }
+    );
+
+    registerJob(
+        'whatsapp-group-reminder',
+        'WhatsApp Group Reminder',
+        '45 18 * * *',
+        async () => {
+            console.log('Running WhatsApp group reminder scheduler at 6:45 PM...');
+            try {
+                await sendWhatsAppGroupReminder();
+                recordJobExecution('whatsapp-group-reminder', 'success');
+            } catch (error) {
+                console.error('Error in WhatsApp group reminder scheduler:', error);
+                recordJobExecution('whatsapp-group-reminder', 'error');
+            }
+        },
+        { start: true }
+    );
 }
+
+async function sendWhatsAppGroupReminder() {
+    let groupJid = process.env.WHATSAPP_DEFAULT_GROUP_JID;
+    let reminderText = '🔔 *Reminder:* Cybersecurity daily session starts at 7:00 PM! Please join on time.';
+
+    try {
+        const groupSetting = await Setting.findOne({ key: 'whatsapp_default_group' });
+        if (groupSetting && groupSetting.value) {
+            try {
+                groupJid = JSON.parse(groupSetting.value);
+            } catch {
+                groupJid = groupSetting.value;
+            }
+        }
+
+        const msgSetting = await Setting.findOne({ key: 'whatsapp_reminder_template' });
+        if (msgSetting && msgSetting.value) {
+            try {
+                reminderText = JSON.parse(msgSetting.value);
+            } catch {
+                reminderText = msgSetting.value;
+            }
+        }
+    } catch (e) {
+        console.warn('[Scheduler] Could not read custom WhatsApp settings, using defaults:', e);
+    }
+
+    if (!groupJid) {
+        console.log('[Scheduler] No WhatsApp group JID configured. Skipping group reminder.');
+        return;
+    }
+
+    await whatsAppService.sendGroupReminder(groupJid, reminderText);
+}
+
 
 async function processPlaylists(client) {
     const activePlaylists = await Playlist.find({ status: 'active' });
