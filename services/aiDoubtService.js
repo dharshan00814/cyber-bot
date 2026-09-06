@@ -1,4 +1,6 @@
 const KNOWLEDGE_BASE_EN = {
+    'webhook': 'A webhook is a mechanism that allows one application to automatically send real-time data to another application whenever a specific event occurs, usually via an HTTP POST request.',
+    'rest api': 'A REST API is an architectural style for APIs that uses standard HTTP methods (like GET, POST, PUT, and DELETE) to access and manipulate resources in a stateless manner.',
     'recursion': 'Recursion is a programming technique where a function calls itself to solve smaller instances of the same problem, continuing until it reaches a base condition that stops the calls.',
     'sql injection': 'SQL injection is a security vulnerability where an attacker manipulates SQL queries by inserting malicious input into form fields, allowing unauthorized database access or data theft.',
     'binary search': 'Binary search is an efficient algorithm for finding an item in a sorted list. It repeatedly divides the search interval in half, achieving logarithmic time complexity.',
@@ -11,6 +13,8 @@ const KNOWLEDGE_BASE_EN = {
 };
 
 const KNOWLEDGE_BASE_TA = {
+    'webhook': 'வெப்ஹூக் (Webhook) என்பது ஒரு குறிப்பிட்ட நிகழ்வு நடக்கும்போது ஒரு செயலி மற்றொரு செயலிக்கு தானாகவே நிகழ்நேர தகவலை (HTTP POST மூலம்) அனுப்பும் ஒரு தொழில்நுட்ப வழிமுறையாகும்.',
+    'rest api': 'ரெஸ்ட் ஏபிஐ (REST API) என்பது இணையத்தில் தகவல்களை பரிமாறிக் கொள்ள GET, POST, PUT, DELETE போன்ற நிலையான HTTP முறைகளைப் பயன்படுத்தும் ஒரு நவீன ஏபிஐ வடிவமைப்பு முறையாகும்.',
     'recursion': 'ரெக்கர்ஷன் என்பது ஒரு ஃபங்க்ஷன் தன்னைத்தானே திரும்ப திரும்ப அழைத்துக் கொள்ளும் ஒரு நிரலாக்க முறை. இது பேஸ் கண்டிஷன் வரும் வரை இயங்கி சிக்கலான பிரச்சனைகளை எளிதாக தீர்க்க உதவும்.',
     'sql injection': 'எஸ்கியூஎல் இன்ஜெக்ஷன் என்பது ஒரு தீவிர பாதுகாப்பு குறைபாடு. இதன் மூலம் ஹேக்கர்கள் தவறான தகவலை உள்ளிட்டு டேட்டாபேஸில் உள்ள ரகசிய தகவல்களை திருட முடியும். இதனை தடுக்க பிரிப்பேர்டு ஸ்டேட்மெண்ட்ஸ் பயன்படுத்த வேண்டும்.',
     'binary search': 'பைனரி சர்ச் என்பது வரிசைப்படுத்தப்பட்ட ஒரு பட்டியலில் ஒரு குறிப்பிட்ட உறுப்பை மிக விரைவாக தேடும் அல்காரிதம். இது ஒவ்வொரு முறையும் பட்டியலை பாதியாக பிரித்து தேடுவதால் மிக குறைந்த நேரத்தில் விடையை தரும்.',
@@ -22,35 +26,146 @@ const KNOWLEDGE_BASE_TA = {
     'cyber security': 'சைபர் செக்யூரிட்டி என்பது கணினிகள், நெட்வொர்க்குகள் மற்றும் தகவல்களை இணையத் தாக்குதல்கள் மற்றும் அத்துமீறல்களில் இருந்து பாதுகாக்கும் நவீன தொழில்நுட்ப பாதுகாப்பு முறை ஆகும்.',
 };
 
-function isBotMentioned(text, wakeWord = 'cyber bot', botId = null) {
-    if (!text || typeof text !== 'string') return false;
-    const trimmed = text.trim();
-    const lower = trimmed.toLowerCase();
+function escapeRegex(str) {
+    return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
 
-    // 1. Custom configured wake word
-    if (wakeWord) {
-        const normalizedWake = wakeWord.toLowerCase().trim();
-        if (lower.includes(normalizedWake)) return true;
-        if (lower.includes(normalizedWake.replace(/\s+/g, ''))) return true;
+/**
+ * Extracts possible bot names/identifiers given client, guild, and custom options
+ */
+function getBotIdentifiers(options = {}) {
+    const names = new Set();
+
+    // Default known bot names
+    names.add('cyber bot');
+    names.add('cyber-bot');
+    names.add('cyberbot');
+    names.add('meetingbot');
+    names.add('meeting bot');
+    names.add('cyber-fox');
+    names.add('cyber fox');
+
+    if (options.wakeWord) {
+        names.add(options.wakeWord.toLowerCase().trim());
+    }
+    if (process.env.WAKE_WORD) {
+        names.add(process.env.WAKE_WORD.toLowerCase().trim());
     }
 
-    // 2. English Bot Names & Calling Patterns
-    const englishBotPatterns = [
-        /\bcyber\s*bot\b/i,
-        /\bhey\s+bot\b/i,
-        /\bhi\s+bot\b/i,
-        /\bhello\s+bot\b/i,
-        /\bbot[,:]?\s+/i,       // "bot, what is..."
-        /\s+bot[,?.]?$/i,       // "...explain this bot?"
-        /\bbot\b.*\?/i,         // "bot can you explain?"
-        /\b(doubt\s+bot|bot\s+doubt)\b/i,
-    ];
+    if (options.client?.user?.username) {
+        names.add(options.client.user.username.toLowerCase().trim());
+    }
+    if (options.guild?.members?.me?.displayName) {
+        names.add(options.guild.members.me.displayName.toLowerCase().trim());
+    }
 
-    if (englishBotPatterns.some(p => p.test(lower))) {
+    return Array.from(names).filter(n => n && n.length > 0);
+}
+
+/**
+ * Checks if a message or text is directing a doubt/question to the bot.
+ * Supports:
+ * - Discord user mention (<@botId>, <@!botId>, message.mentions.has(client.user))
+ * - Plaintext bot name (@MeetingBot, @CYBER-FOX, MeetingBot, etc.)
+ * - Call syntax (MeetingBot, explain API / Hey bot, what is a webhook?)
+ * - Configured WAKE_WORD
+ * - Tamil patterns (சைபர் பாட், பாட்)
+ */
+function isBotMentioned(input, wakeWord = null, botId = null, extraOptions = {}) {
+    let text = '';
+    let mentions = null;
+    let client = null;
+    let guild = null;
+
+    if (input && typeof input === 'object' && typeof input.content === 'string') {
+        text = input.content;
+        mentions = input.mentions;
+        client = input.client;
+        guild = input.guild;
+        botId = botId || client?.user?.id;
+    } else if (typeof input === 'string') {
+        text = input;
+    } else {
+        return false;
+    }
+
+    if (typeof wakeWord === 'object' && wakeWord !== null) {
+        extraOptions = wakeWord;
+        wakeWord = extraOptions.wakeWord;
+        botId = botId || extraOptions.botId;
+        client = client || extraOptions.client;
+        guild = guild || extraOptions.guild;
+        mentions = mentions || extraOptions.mentions;
+    }
+
+    botId = botId || client?.user?.id || process.env.CLIENT_ID;
+
+    // 1. Direct Discord Mentions Collection Check
+    if (client?.user && mentions?.has && mentions.has(client.user)) {
+        return true;
+    }
+    if (botId && mentions?.users?.has && mentions.users.has(botId)) {
         return true;
     }
 
-    // 3. Tamil Bot Names & Calling Patterns (சைபர் பாட், பாட்)
+    const trimmed = text.trim();
+    const lower = trimmed.toLowerCase();
+
+    // 2. Raw Discord Mention Syntax in Content (<@botId> or <@!botId>)
+    if (botId) {
+        const rawMentionRegex = new RegExp(`<@!?${botId}>`, 'i');
+        if (rawMentionRegex.test(trimmed)) {
+            return true;
+        }
+    }
+
+    // 3. Dynamic Bot Names & Nicknames
+    const botNames = getBotIdentifiers({ wakeWord, client, guild });
+    for (const name of botNames) {
+        const escaped = escapeRegex(name);
+
+        // @BotName
+        if (new RegExp(`@${escaped}\\b`, 'i').test(lower)) {
+            return true;
+        }
+
+        // BotName, or BotName: (e.g. "MeetingBot, what is...", "CYBER-FOX: explain API")
+        if (new RegExp(`^${escaped}[,:]\\s*`, 'i').test(lower)) {
+            return true;
+        }
+
+        // Hey/Hi/Hello BotName
+        if (new RegExp(`\\b(hey|hi|hello)\\s+${escaped}\\b`, 'i').test(lower)) {
+            return true;
+        }
+
+        // BotName at the start of a question (e.g. "MeetingBot what is a webhook?", "MeetingBot explain...")
+        if (new RegExp(`^${escaped}\\s+(what|explain|how|why|can|tell|is|are|define|i\\s+don't|help)\\b`, 'i').test(lower)) {
+            return true;
+        }
+
+        // "... BotName?" at the end
+        if (new RegExp(`\\b${escaped}\\s*\\?\\s*$`, 'i').test(lower)) {
+            return true;
+        }
+    }
+
+    // 4. Generic Bot Calling Patterns
+    const genericPatterns = [
+        /^@bot\b/i,
+        /^bot[,:]\s+/i,
+        /\bhey\s+bot\b/i,
+        /\bhi\s+bot\b/i,
+        /\bhello\s+bot\b/i,
+        /\s+bot[,?.]?$/i,
+        /\b(doubt\s+bot|bot\s+doubt)\b/i,
+    ];
+
+    if (genericPatterns.some(p => p.test(lower))) {
+        return true;
+    }
+
+    // 5. Tamil Bot Names & Calling Patterns (சைபர் பாட், பாட்)
     const tamilBotPatterns = [
         /சைபர்\s*பாட்/i,
         /ஹே\s*பாட்/i,
@@ -60,12 +175,6 @@ function isBotMentioned(text, wakeWord = 'cyber bot', botId = null) {
     if (tamilBotPatterns.some(p => p.test(trimmed))) {
         return true;
     }
-
-    // 4. Discord User Mention (<@botId> or @Cyber Bot)
-    if (botId) {
-        if (lower.includes(`<@${botId}>`) || lower.includes(`<@!${botId}>`)) return true;
-    }
-    if (lower.includes('@cyber bot') || lower.includes('@bot')) return true;
 
     return false;
 }
@@ -92,67 +201,59 @@ function isTamilText(text) {
     return tanglishPatterns.some(p => p.test(text));
 }
 
-function isDoubt(text, wakeWord = 'cyber bot', botId = null, options = {}) {
+function isDoubt(text, wakeWord = null, botId = null, options = {}) {
     if (!text || typeof text !== 'string') return false;
-
-    // If explicitly invoked via command (/meeting ask) or dashboard input, accept directly
     if (options.isExplicit) return true;
-
-    // CRITICAL USER REQUIREMENT:
-    // "if i ask any questions it will not replying but i metion with the bot name only then bot reply otherwise none"
-    const mentioned = isBotMentioned(text, wakeWord, botId);
-    if (!mentioned) {
-        return false; // Do not reply unless the bot name is explicitly mentioned!
-    }
-
-    return true;
+    return isBotMentioned(text, wakeWord, botId, options);
 }
 
-function cleanDoubtText(rawText, wakeWord = 'cyber bot') {
-    if (!rawText) return '';
+/**
+ * Strips Discord user mentions (<@id>), @BotName, wake words, and conversational call prefixes.
+ */
+function cleanDoubtText(rawText, optionsOrWakeWord = {}) {
+    if (!rawText || typeof rawText !== 'string') return '';
     let cleaned = rawText.trim();
 
-    // Strip English wake phrases
-    if (wakeWord) {
-        const regex = new RegExp(`^hey\\s+${wakeWord}[,:]?\\s*|^${wakeWord}[,:]?\\s*|${wakeWord}[,?]\\s*$`, 'i');
-        cleaned = cleaned.replace(regex, '');
+    let options = {};
+    if (typeof optionsOrWakeWord === 'string') {
+        options = { wakeWord: optionsOrWakeWord };
+    } else if (typeof optionsOrWakeWord === 'object') {
+        options = optionsOrWakeWord;
     }
 
-    cleaned = cleaned.replace(/^(hey\s+bot|hi\s+bot|hello\s+bot|bot)[,:]?\s*/i, '');
-    cleaned = cleaned.replace(/^(i have a doubt[,:]?\s*|can you tell me[,:]?\s*|can you explain[,:]?\s*)/i, '');
-    cleaned = cleaned.replace(/[,]?\s*(hey\s+bot|bot)[?.]?$/i, '');
+    // 1. Remove Discord Mention tags: <@123456789>, <@!123456789>, <@&123456789>
+    cleaned = cleaned.replace(/<@!?&?\d+>/g, ' ');
 
-    // Strip Tamil wake phrases
-    cleaned = cleaned.replace(/^(சைபர்\s*பாட்|ஹே\s*பாட்|பாட்)[,:]?\s*/i, '');
-    cleaned = cleaned.replace(/[,]?\s*(சைபர்\s*பாட்|பாட்)[?.]?$/i, '');
-    cleaned = cleaned.replace(/^(எனக்கு\s*ஒரு\s*சந்தேகம்|ஒரு\s*டவுட்)[,:]?\s*/i, '');
-
-    return cleaned.trim() || rawText.trim();
-}
-
-function solveWithLocalKnowledge(question, isTamil = false) {
-    const lower = question.toLowerCase();
-    const kb = isTamil ? KNOWLEDGE_BASE_TA : KNOWLEDGE_BASE_EN;
-
-    for (const [key, answer] of Object.entries(kb)) {
-        if (lower.includes(key) || (isTamil && matchesTamilConcept(lower, key))) {
-            if (isTamil) {
-                return `நல்ல கேள்வி! ${answer} மேலும் ஏதேனும் சந்தேகம் இருந்தால் கேளுங்கள்.`;
-            } else {
-                return `Great question! ${answer} Let me know if you would like me to elaborate on any specific part.`;
-            }
-        }
+    // 2. Remove known bot names
+    const botNames = getBotIdentifiers(options);
+    for (const name of botNames) {
+        const escaped = escapeRegex(name);
+        cleaned = cleaned.replace(new RegExp(`@${escaped}\\b`, 'gi'), ' ');
+        cleaned = cleaned.replace(new RegExp(`^${escaped}[,:]?\\s*`, 'i'), ' ');
+        cleaned = cleaned.replace(new RegExp(`[,]?\\s*${escaped}[?.]?$`, 'i'), ' ');
     }
 
-    if (isTamil) {
-        return `நல்ல கேள்வி! ${question.replace(/\?+$/, '')} என்பது கணினி அறிவியல் மற்றும் மென்பொருள் உருவாக்கத்தில் ஒரு முக்கிய கருத்து. இது அமைப்புகளை பாதுகாப்பாகவும் சிறப்பாகவும் இயக்க உதவுகிறது. வேறு ஏதேனும் சந்தேகம் இருந்தால் தாராளமாகக் கேளுங்கள்!`;
-    }
+    // 3. Remove generic prefixes: "@bot", "hey bot", "hi bot", "bot,"
+    cleaned = cleaned.replace(/@bot\b/gi, ' ');
+    cleaned = cleaned.replace(/^(hey|hi|hello)\s+bot[,:]?\s*/i, ' ');
+    cleaned = cleaned.replace(/^bot[,:]?\s*/i, ' ');
+    cleaned = cleaned.replace(/[,]?\s*(hey\s+bot|bot)[?.]?$/i, ' ');
 
-    return `That is a great question about ${question.replace(/\?+$/, '')}. In simple terms, it is a fundamental technology concept used to build, manage, and scale software systems reliably. Feel free to ask if you want me to break down any specific step!`;
+    // 4. Remove Tamil wake phrases
+    cleaned = cleaned.replace(/^(சைபர்\s*பாட்|ஹே\s*பாட்|பாட்)[,:]?\s*/i, ' ');
+    cleaned = cleaned.replace(/[,]?\s*(சைபர்\s*பாட்|பாட்)[?.]?$/i, ' ');
+    cleaned = cleaned.replace(/^(எனக்கு\s*ஒரு\s*சந்தேகம்|ஒரு\s*டவுட்)[,:]?\s*/i, ' ');
+
+    // 5. Clean up extra punctuation and whitespace
+    cleaned = cleaned.replace(/^[,:;\s-]+/, '').replace(/[\s-]+$/, '').trim();
+
+    return cleaned;
 }
 
 function matchesTamilConcept(text, key) {
     const tamilKeywords = {
+        'webhook': ['வெப்ஹூக்', 'webhook'],
+        'rest api': ['ரெஸ்ட் ஏபிஐ', 'rest api', 'rest'],
         'recursion': ['ரெக்கர்ஷன்', 'ரிகர்ஷன்', 'recursion'],
         'sql injection': ['எஸ்கியூஎல்', 'sql injection', 'sql'],
         'binary search': ['பைனரி சர்ச்', 'binary search'],
@@ -166,36 +267,83 @@ function matchesTamilConcept(text, key) {
     return matches.some(m => text.includes(m));
 }
 
+function solveWithLocalKnowledge(question, isTamil = false) {
+    const lower = (question || '').toLowerCase();
+    const kb = isTamil ? KNOWLEDGE_BASE_TA : KNOWLEDGE_BASE_EN;
+
+    // Check exact or keyword match
+    for (const [key, answer] of Object.entries(kb)) {
+        if (lower.includes(key) || (isTamil && matchesTamilConcept(lower, key))) {
+            return answer;
+        }
+    }
+
+    // Specific conversational answers
+    if (lower.includes('recursion')) {
+        return isTamil
+            ? 'ரெக்கர்ஷன் என்பது ஒரு ஃபங்க்ஷன் தன்னைத்தானே அழைத்துக் கொள்ளும் ஒரு நிரலாக்க முறை. இது பேஸ் கண்டிஷன் வரும் வரை தொடர்ந்து இயங்கும்.'
+            : 'Recursion is a programming technique where a function calls itself to solve smaller instances of the same problem until reaching a base condition.';
+    }
+
+    if (lower.includes('api')) {
+        return isTamil
+            ? 'ஏபிஐ (API) என்பது இரண்டு வெவ்வேறு செயலிகள் அல்லது மென்பொருள்கள் ஒன்றுடன் ஒன்று தகவல்களை எளிதாக பரிமாறிக் கொள்ள உதவும் ஒரு தொழில்நுட்ப அமைப்பாகும்.'
+            : 'An API (Application Programming Interface) is a set of rules and protocols that allows different software applications to communicate and exchange data with each other.';
+    }
+
+    if (lower.includes('webhook')) {
+        return isTamil
+            ? 'வெப்ஹூக் என்பது ஒரு குறிப்பிட்ட நிகழ்வு நடக்கும் போது தானாகவே தகவலை அனுப்பும் ஒரு நிகழ்நேர இணைப்பு முறையாகும்.'
+            : 'A webhook is a way for one application to automatically send real-time information to another application when a specific event occurs.';
+    }
+
+    if (isTamil) {
+        return `நல்ல கேள்வி! ${question.replace(/\?+$/, '')} என்பது மென்பொருள் உருவாக்கத்தில் ஒரு முக்கிய தொழில்நுட்ப கருத்து ஆகும். இது அமைப்புகளை சிறப்பாக இயக்க உதவுகிறது. மேலும் ஏதேனும் சந்தேகம் இருந்தால் தாராளமாகக் கேளுங்கள்!`;
+    }
+
+    return `That is a great question about ${question.replace(/\?+$/, '')}. In simple terms, it is a key technical concept used to build, connect, and scale software systems reliably. Feel free to ask if you'd like a deeper breakdown!`;
+}
+
+/**
+ * Solves a user doubt or question using Gemini Generative AI or built-in intelligent tutor fallback.
+ */
 async function solveDoubt(doubtText, context = {}) {
     const cleanedQuestion = cleanDoubtText(doubtText, context.wakeWord || process.env.WAKE_WORD || 'cyber bot');
     const isTamil = isTamilText(doubtText) || isTamilText(cleanedQuestion) || context.lang === 'ta';
-    const apiKey = process.env.GEMINI_API_KEY;
+    const apiKey = process.env.GEMINI_API_KEY || process.env.AI_API_KEY;
 
     if (apiKey && apiKey.trim().length > 5 && apiKey !== 'your_gemini_api_key_here') {
         const { GoogleGenerativeAI } = require('@google/generative-ai');
-        const genAI = new GoogleGenerativeAI(apiKey);
-        const candidateModels = ['gemini-3.5-flash', 'gemini-3.5-flash-lite', 'gemini-flash-latest', 'gemini-3.7-flash', 'gemini-3.6-flash'];
+        const genAI = new GoogleGenerativeAI(apiKey.trim());
+
+        const candidateModels = [
+            process.env.GEMINI_MODEL || process.env.AI_MODEL,
+            'gemini-3.5-flash-lite',
+            'gemini-2.5-flash',
+            'gemini-2.0-flash',
+            'gemini-1.5-flash',
+            'gemini-flash-latest',
+        ].filter(Boolean);
 
         let systemPrompt;
         if (isTamil) {
-            systemPrompt = `You are Cyber Bot, an encouraging, highly articulate AI mentor and tutor speaking live in a voice meeting to students.
-The student has asked you a doubt in TAMIL (or Tanglish): "${cleanedQuestion}".
+            systemPrompt = `You are Cyber Bot, an encouraging, articulate, and friendly AI meeting and learning assistant.
+The member has asked you a question or doubt in TAMIL (or Tanglish): "${cleanedQuestion}".
 
-Guidelines for your answer:
-1. You MUST explain the answer in clear, natural, spoken TAMIL (தமிழில் விளக்கம் அளியுங்கள்).
-2. Use friendly, spoken Tamil that sounds natural when spoken aloud via Text-to-Speech. You can use standard English tech terms (like recursion, array, loop, deploy, hosting, database) where appropriate.
-3. Keep it between 2 and 4 spoken sentences (maximum 60 words) so it is ideal for real-time speech.
-4. CRITICAL: DO NOT use markdown (*, #, _, \`), bullet points, emojis, or code blocks. Format your response purely as natural spoken Tamil sentences.
-5. Conclude with a warm encouragement in Tamil like "நன்றி! வேறு ஏதேனும் சந்தேகம் இருந்தால் கேளுங்கள்."`;
+Guidelines:
+1. Explain the answer in clear, natural, spoken TAMIL (தமிழில் விளக்கம் அளியுங்கள்).
+2. You may use standard English tech terms (like API, Webhook, Recursion, Database, Endpoint, Server) where helpful.
+3. Keep the explanation concise, informative, and direct (between 2 and 4 natural sentences, around 40-70 words).
+4. Maintain a warm, encouraging, and mentor-like tone.`;
         } else {
-            systemPrompt = `You are Cyber Bot, an encouraging, highly articulate AI mentor and tutor speaking live in a voice meeting to students and teammates.
-The student has asked this question or doubt: "${cleanedQuestion}".
+            systemPrompt = `You are Cyber Bot, an encouraging, articulate, and friendly AI meeting and learning assistant.
+The member has asked you this question or doubt: "${cleanedQuestion}".
 
-Guidelines for your answer:
+Guidelines:
 1. Provide a direct, crystal-clear, and accurate explanation.
-2. Keep it between 2 and 4 spoken sentences (maximum 60 words) so it is ideal for real-time speech.
-3. CRITICAL: DO NOT use markdown (*, #, _, \`), bullet points, emojis, or code blocks. Format your response purely as natural spoken English that sounds friendly, confident, and professional when read aloud.
-4. Conclude with a warm encouragement.`;
+2. Keep the answer concise and digestible (between 2 and 4 informative sentences, around 40-70 words).
+3. Sound friendly, confident, and professional.
+4. Conclude with a helpful, encouraging closing.`;
         }
 
         for (const modelName of candidateModels) {
@@ -203,38 +351,53 @@ Guidelines for your answer:
                 const model = genAI.getGenerativeModel({ model: modelName });
                 const result = await model.generateContent(systemPrompt);
                 const rawResponse = result.response.text().trim();
-                const spokenAnswer = rawResponse.replace(/[*_#`~>]/g, '').trim();
+                const cleanAnswer = rawResponse.replace(/[*_#`~>]/g, '').trim();
 
                 return {
                     success: true,
                     question: cleanedQuestion,
-                    spokenAnswer,
+                    answer: rawResponse,
+                    spokenAnswer: cleanAnswer,
                     isTamil,
                     language: isTamil ? 'ta' : 'en',
                     provider: modelName,
                 };
             } catch (err) {
-                console.warn(`[AiDoubtService] Model ${modelName} failed (${err.message?.substring(0, 70)}), trying next model...`);
+                console.warn(`[AiDoubtService] Model ${modelName} failed (${err.message?.substring(0, 70)}), checking fallback...`);
             }
         }
     }
 
     // Built-in intelligent tutor fallback
-    const spokenAnswer = solveWithLocalKnowledge(cleanedQuestion, isTamil);
+    const localAnswer = solveWithLocalKnowledge(cleanedQuestion, isTamil);
     return {
         success: true,
         question: cleanedQuestion,
-        spokenAnswer,
+        answer: localAnswer,
+        spokenAnswer: localAnswer.replace(/[*_#`~>]/g, '').trim(),
         isTamil,
         language: isTamil ? 'ta' : 'en',
         provider: isTamil ? 'built-in-tamil-tutor' : 'built-in-tutor',
     };
 }
 
+function isStopRequested(text) {
+    if (!text || typeof text !== 'string') return false;
+    const t = text.trim().toLowerCase();
+    if (/^(stop|pause|shut up|be quiet|silence|halt|போதும்|நிறுத்து)$/i.test(t)) return true;
+    if (/\b(stop\s+talking|stop\s+it|stop\s+speaking|shut\s+up|be\s+quiet|please\s+stop|can\s+you\s+stop|bot\s+stop|stop\s+bot)\b/i.test(t)) return true;
+    if (/\b(stop\s+pannu|stop\s+pannunga|niruthu|niruthunga|pothum)\b/i.test(t)) return true;
+    if (/(?:போதும்|நிறுத்து|நிறுத்துங்க)/.test(t)) return true;
+    return false;
+}
+
 module.exports = {
     isBotMentioned,
     isTamilText,
     isDoubt,
+    isStopRequested,
     cleanDoubtText,
     solveDoubt,
+    solveWithLocalKnowledge,
+    getBotIdentifiers,
 };

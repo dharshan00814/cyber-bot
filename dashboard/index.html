@@ -550,120 +550,45 @@
                                         </button>
                                     </div>
                                 </div>
-                                <div class="form-group" style="margin-top: 14px;">
-                                    <label class="form-label" style="display:flex; justify-content:space-between; align-items:center;">
-                                        <span>Google Gemini API Key</span>
-                                        <a href="https://aistudio.google.com/app/apikey" target="_blank" style="font-size:11px; color:#00d4ff; text-decoration:none;">🔑 Get Free Key ↗</a>
-                                    </label>
-                                    <div style="display: flex; gap: 8px;">
-                                        <input type="password" class="form-input" id="meeting-gemini-key" placeholder="AIzaSy... (or paste in .env)" style="flex: 1;">
-                                        <button type="button" class="btn btn-secondary" id="meeting-save-gemini-btn">
-                                            Save Key
-                                        </button>
-                                    </div>
-                                    <span id="meeting-gemini-status" style="font-size:11.5px; color:var(--text-secondary); margin-top:3px; display:block;">
-                                        Enables in-Discord voice mic transcription & Gemini generative doubts.
-                                    </span>
-                                </div>
                                 <div style="display: flex; gap: 10px; margin-top: 18px;">
                                     <button class="btn btn-primary" id="meeting-join-btn" style="flex: 1; justify-content: center;">
                                         🎙️ Join Meeting
                                     </button>
+                                    <button class="btn btn-warning" id="meeting-stop-btn" disabled style="flex: 1; justify-content: center;">
+                                        ⏹️ Stop Speaking
+                                    </button>
                                     <button class="btn btn-danger" id="meeting-leave-btn" disabled style="flex: 1; justify-content: center;">
-                                        ⏹️ Leave Meeting
+                                        🚪 Leave Meeting
                                     </button>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Live Voice Microphone & Zero-Command Spoken Doubt Console -->
-                        <div class="card" style="border: 1px solid rgba(0, 212, 255, 0.3); background: linear-gradient(145deg, rgba(16, 24, 40, 0.9), rgba(15, 23, 42, 0.95));">
+                        <!-- Discord Voice AI Assistant Instructions & Live Status -->
+                        <div class="card" style="border: 1px solid rgba(0, 212, 255, 0.25); background: linear-gradient(145deg, rgba(16, 24, 40, 0.9), rgba(15, 23, 42, 0.95));">
                             <div class="card-header" style="border-bottom: 1px solid rgba(0, 212, 255, 0.15);">
-                                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-                                    <h4 class="card-title" style="margin: 0; display: flex; align-items: center; gap: 8px;">
-                                        🎙️ Speak Doubt to Bot
-                                        <span class="badge badge-success" style="font-size: 10px;">Zero Commands • Real-Time Voice</span>
-                                    </h4>
-                                    <!-- Language toggle for mic -->
-                                    <div style="display: flex; align-items: center; gap: 6px;">
-                                        <label style="font-size: 11px; color: var(--text-secondary); margin: 0;">Mic Language:</label>
-                                        <select id="meeting-mic-lang" class="form-select" style="padding: 3px 8px; font-size: 12px; width: auto; background: rgba(255,255,255,0.06);">
-                                            <option value="en-US">🌐 English</option>
-                                            <option value="ta-IN">🇮🇳 தமிழ் (Tamil)</option>
-                                        </select>
-                                    </div>
-                                </div>
+                                <h4 class="card-title" style="margin: 0; display: flex; align-items: center; gap: 8px;">
+                                    🎧 Discord Voice AI Tutor
+                                    <span class="badge badge-success" style="font-size: 10px;">Zero Commands • Real-Time Voice</span>
+                                </h4>
                             </div>
                             <div class="card-body">
-                                <div style="display: flex; flex-direction: column; align-items: center; padding: 10px 0 16px 0;">
-                                    <button type="button" id="meeting-mic-toggle-btn" style="
-                                        width: 72px;
-                                        height: 72px;
-                                        border-radius: 50%;
-                                        border: 2px solid #00d4ff;
-                                        background: rgba(0, 212, 255, 0.1);
-                                        color: #00d4ff;
-                                        font-size: 28px;
-                                        cursor: pointer;
-                                        display: flex;
-                                        align-items: center;
-                                        justify-content: center;
-                                        transition: all 0.25s ease;
-                                        box-shadow: 0 0 15px rgba(0, 212, 255, 0.2);
-                                    " title="Click to speak your doubt">
-                                        🎙️
-                                    </button>
-                                    <div id="meeting-mic-status-text" style="font-size: 13px; font-weight: 600; margin-top: 10px; color: var(--text-secondary);">
-                                        Click microphone to start speaking
+                                <div style="padding: 12px 14px; background: rgba(0, 212, 255, 0.05); border: 1px solid rgba(0, 212, 255, 0.2); border-radius: 8px; margin-bottom: 14px;">
+                                    <div style="font-weight: 600; color: #00d4ff; font-size: 13.5px; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
+                                        <span>🗣️</span> How to Ask Doubts (Directly in Discord Voice)
                                     </div>
-                                    <div style="font-size: 11.5px; color: var(--text-secondary); margin-top: 2px;">
-                                        Just say <em>"Cyber Bot, what is..."</em> or <em>"சைபர் பாட், ..."</em>
+                                    <p style="font-size: 12.5px; color: var(--text-secondary); margin: 0 0 10px 0; line-height: 1.5;">
+                                        Join the voice channel in Discord and speak naturally into your microphone. When you address the bot by name, Cyber Bot transcribes your question, creates a concise explanation, and <strong>speaks the answer aloud</strong> in Discord!
+                                    </p>
+                                    <div style="display: flex; flex-direction: column; gap: 6px; font-size: 12px; background: rgba(0, 0, 0, 0.2); padding: 10px; border-radius: 6px;">
+                                        <div><strong style="color: #f8fafc;">🌐 English:</strong> <em>"Cyber Bot, what is recursion?"</em> or <em>"Bot, explain SQL injection"</em></div>
+                                        <div><strong style="color: #38bdf8;">🇮🇳 தமிழ் (Tamil):</strong> <em>"சைபர் பாட், ரெக்கர்ஷன் என்றால் என்ன?"</em> or <em>"பாட், API பற்றி சொல்லுங்கள்"</em></div>
                                     </div>
                                 </div>
-
-                                <!-- Live Speech Preview Box -->
-                                <div id="meeting-live-speech-box" style="
-                                    display: none;
-                                    padding: 10px 14px;
-                                    background: rgba(0, 212, 255, 0.04);
-                                    border: 1px dashed rgba(0, 212, 255, 0.3);
-                                    border-radius: 8px;
-                                    margin-bottom: 12px;
-                                    font-size: 13px;
-                                    color: var(--text-primary);
-                                ">
-                                    <div style="font-size: 11px; color: #00d4ff; font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
-                                        <span style="display:inline-block; width:6px; height:6px; border-radius:50%; background:#ef4444; animation:pulse 1s infinite;"></span>
-                                        LIVE SPEECH DETECTED:
-                                    </div>
-                                    <div id="meeting-live-speech-text" style="font-style: italic; color: #f8fafc;">
-                                        Listening...
-                                    </div>
+                                <div style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-secondary);">
+                                    <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#10b981;"></span>
+                                    <span>Transcripts, speaking times, and attendance are tracked below in real time.</span>
                                 </div>
-
-                                <form id="meeting-ask-form" style="margin-top: 6px;">
-                                    <div class="form-group" style="margin-bottom: 8px;">
-                                        <div style="display: flex; gap: 8px;">
-                                            <input type="text" class="form-input" id="meeting-doubt-input" placeholder="Or type doubt here (e.g. What is recursion?)" required style="flex: 1;">
-                                            <button type="submit" class="btn btn-success" id="meeting-doubt-submit-btn">
-                                                🔊 Explain Aloud
-                                            </button>
-                                        </div>
-                                    </div>
-                                    <div style="display: flex; flex-wrap: wrap; gap: 6px; align-items: center;">
-                                        <span style="font-size: 11px; color: var(--text-secondary);">English:</span>
-                                        <button type="button" class="btn btn-secondary btn-sm" onclick="pageMeeting.setDoubtInput('Cyber Bot, what is recursion?')">Recursion</button>
-                                        <button type="button" class="btn btn-secondary btn-sm" onclick="pageMeeting.setDoubtInput('Cyber Bot, explain SQL Injection')">SQL Injection</button>
-                                        <button type="button" class="btn btn-secondary btn-sm" onclick="pageMeeting.setDoubtInput('Cyber Bot, what is binary search?')">Binary Search</button>
-                                        <span style="font-size: 11px; color: #00d4ff; margin-left: 6px;">தமிழ்:</span>
-                                        <button type="button" class="btn btn-secondary btn-sm" style="border-color: rgba(0,212,255,0.4);" onclick="pageMeeting.setDoubtInput('சைபர் பாட், ரெக்கர்ஷன் என்றால் என்ன?')">ரெக்கர்ஷன்</button>
-                                        <button type="button" class="btn btn-secondary btn-sm" style="border-color: rgba(0,212,255,0.4);" onclick="pageMeeting.setDoubtInput('பாட், SQL Injection பற்றி சொல்லுங்கள்')">SQL Injection</button>
-                                    </div>
-                                    <div style="margin-top: 10px; padding: 8px 10px; background: rgba(0, 212, 255, 0.05); border-left: 3px solid #00d4ff; border-radius: 4px; font-size: 11.5px; color: var(--text-secondary);">
-                                        <strong>🎙️ Voice Rule:</strong> Mention the bot name (<em>"Cyber bot..."</em> or <em>"சைபர் பாட்..."</em>) to trigger speaking. The bot speaks its answer aloud in Discord & here in the browser!
-                                    </div>
-                                </form>
-                                <div id="meeting-latest-answer" style="display: none;"></div>
                             </div>
                         </div>
                     </div>

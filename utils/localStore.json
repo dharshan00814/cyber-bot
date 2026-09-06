@@ -47,6 +47,83 @@
       "xp": 10,
       "completed_tasks": [],
       "id": "mem-mtn7tvmgsya9"
+    },
+    {
+      "user_id": "1463895075057827957",
+      "name": "v.lvignesh",
+      "role": "beginner",
+      "join_date": "2026-09-06T16:47:28.984Z",
+      "activity_score": 0,
+      "streak": 0,
+      "last_active_date": null,
+      "xp": 10,
+      "completed_tasks": [],
+      "id": "mem-mtq1oo3czzn8"
+    },
+    {
+      "user_id": "1167152655890645107",
+      "name": "michalnithesh",
+      "role": "beginner",
+      "join_date": "2026-09-06T17:19:17.522Z",
+      "activity_score": 0,
+      "streak": 0,
+      "last_active_date": null,
+      "xp": 10,
+      "completed_tasks": [],
+      "id": "mem-mtq2tkpha5kx"
+    },
+    {
+      "user_id": "1309201554787664026",
+      "name": "anitus_a",
+      "role": "beginner",
+      "join_date": "2026-09-06T17:19:49.879Z",
+      "activity_score": 0,
+      "streak": 0,
+      "last_active_date": null,
+      "xp": 10,
+      "completed_tasks": [],
+      "id": "mem-mtq2u9o98263"
+    },
+    {
+      "user_id": "test-user-12345",
+      "name": "Test Coder",
+      "role": "beginner",
+      "join_date": "2026-09-06T17:30:30.043Z",
+      "activity_score": 2,
+      "streak": 0,
+      "last_active_date": "2026-09-06T17:31:17.377Z",
+      "xp": 30,
+      "completed_tasks": [
+        {
+          "taskName": "Quiz: Cybersecurity",
+          "completedDate": "2026-09-06T17:30:30.043Z",
+          "pointsEarned": 15
+        },
+        {
+          "taskName": "Quiz: Cybersecurity",
+          "completedDate": "2026-09-06T17:31:17.377Z",
+          "pointsEarned": 15
+        }
+      ],
+      "id": "mem-mtq37zmmx531"
+    },
+    {
+      "user_id": "btn-user-1",
+      "name": "Button User",
+      "role": "beginner",
+      "join_date": "2026-09-06T17:31:38.279Z",
+      "activity_score": 1,
+      "streak": 0,
+      "last_active_date": "2026-09-06T17:31:38.279Z",
+      "xp": 15,
+      "completed_tasks": [
+        {
+          "taskName": "Quiz: Web Development",
+          "completedDate": "2026-09-06T17:31:38.279Z",
+          "pointsEarned": 15
+        }
+      ],
+      "id": "mem-mtq39ga3axvn"
     }
   ],
   "progress": [
@@ -90,6 +167,42 @@
       "check_in_time": "2026-09-04T17:16:13.730Z",
       "notes": "Attended AI Voice Meeting",
       "id": "att-mtn7txk5aos6"
+    },
+    {
+      "member_id": "1464653401727045916",
+      "date": "2026-09-06T16:47:31.490Z",
+      "status": "present",
+      "meeting_name": "Off talks",
+      "check_in_time": "2026-09-06T16:47:31.490Z",
+      "notes": "Attended AI Voice Meeting",
+      "id": "att-mtq1oq06gol9"
+    },
+    {
+      "member_id": "1463895075057827957",
+      "date": "2026-09-06T16:47:31.520Z",
+      "status": "present",
+      "meeting_name": "Off talks",
+      "check_in_time": "2026-09-06T16:47:31.520Z",
+      "notes": "Attended AI Voice Meeting",
+      "id": "att-mtq1oq0zvqmj"
+    },
+    {
+      "member_id": "1167152655890645107",
+      "date": "2026-09-06T17:19:20.044Z",
+      "status": "present",
+      "meeting_name": "Off talks",
+      "check_in_time": "2026-09-06T17:19:20.044Z",
+      "notes": "Attended AI Voice Meeting",
+      "id": "att-mtq2tmohmp9x"
+    },
+    {
+      "member_id": "1309201554787664026",
+      "date": "2026-09-06T17:19:52.391Z",
+      "status": "present",
+      "meeting_name": "Off talks",
+      "check_in_time": "2026-09-06T17:19:52.391Z",
+      "notes": "Attended AI Voice Meeting",
+      "id": "att-mtq2ubmy0vup"
     }
   ],
   "announcements": [
@@ -288,6 +401,159 @@
       "status": "ended",
       "created_at": "2026-09-04T18:16:14.627Z",
       "id": "mee-mtn9z412pt6r"
+    },
+    {
+      "guild_id": "1497878851693318204",
+      "channel_id": "1497878852796682291",
+      "channel_name": "Off talks",
+      "start_time": "2026-09-06T16:47:26.295Z",
+      "end_time": "2026-09-06T16:47:48.742Z",
+      "duration_seconds": 5,
+      "participants": [
+        {
+          "userId": "1463895075057827957",
+          "username": "v.lvignesh",
+          "displayName": "V.L.Vignesh",
+          "speakCount": 6,
+          "totalSpokenSeconds": 2,
+          "attendedAt": "2026-09-06T16:47:26.295Z"
+        },
+        {
+          "userId": "1464653401727045916",
+          "username": "dharshan.jm",
+          "displayName": "Dharshan. J.M",
+          "speakCount": 0,
+          "totalSpokenSeconds": 0,
+          "attendedAt": "2026-09-06T16:47:26.295Z"
+        }
+      ],
+      "transcripts": [],
+      "status": "ended",
+      "created_at": "2026-09-06T16:47:48.742Z",
+      "id": "mee-mtq1p3bctovs"
+    },
+    {
+      "guild_id": "1497878851693318204",
+      "channel_id": "1497878852796682291",
+      "channel_name": "Off talks",
+      "start_time": "2026-09-06T17:33:20.859Z",
+      "end_time": "2026-09-06T17:39:04.999Z",
+      "duration_seconds": 334,
+      "participants": [
+        {
+          "userId": "1464653401727045916",
+          "username": "dharshan.jm",
+          "displayName": "Dharshan. J.M",
+          "speakCount": 15,
+          "totalSpokenSeconds": 27,
+          "attendedAt": "2026-09-06T17:33:20.860Z"
+        }
+      ],
+      "transcripts": [
+        {
+          "id": "tr-1788716061437-8if5",
+          "timestamp": "2026-09-06T17:34:21.437Z",
+          "userId": "1464653401727045916",
+          "username": "Dharshan. J.M",
+          "text": "two node",
+          "isDoubt": false,
+          "type": "speech",
+          "botAnswer": null
+        },
+        {
+          "id": "tr-1788716067027-az0d",
+          "timestamp": "2026-09-06T17:34:27.027Z",
+          "userId": "1464653401727045916",
+          "username": "Dharshan. J.M",
+          "text": "200",
+          "isDoubt": false,
+          "type": "speech",
+          "botAnswer": null
+        },
+        {
+          "id": "tr-1788716072844-25wn",
+          "timestamp": "2026-09-06T17:34:32.844Z",
+          "userId": "1464653401727045916",
+          "username": "Dharshan. J.M",
+          "text": "Cyberbot 200 is my answer.",
+          "isDoubt": true,
+          "type": "doubt",
+          "botAnswer": "Hello! While 200 is a great effort, it isn't quite the correct answer for this particular problem. Let's review the core steps together to find the right path forward. You are doing fantastic, so keep that positive energy going, and I know you'll nail it on the next try!"
+        },
+        {
+          "id": "tr-1788716098487-mfee",
+          "timestamp": "2026-09-06T17:34:58.487Z",
+          "userId": "1464653401727045916",
+          "username": "Dharshan. J.M",
+          "text": "next question",
+          "isDoubt": false,
+          "type": "speech",
+          "botAnswer": null
+        },
+        {
+          "id": "tr-1788716123409-pyc9",
+          "timestamp": "2026-09-06T17:35:23.409Z",
+          "userId": "1464653401727045916",
+          "username": "Dharshan. J.M",
+          "text": "Cyberbot ask next question.",
+          "isDoubt": true,
+          "type": "doubt",
+          "botAnswer": "Hello there! I am ready to keep our learning session moving forward smoothly. Based on our current discussion, here is your next question: What is the primary benefit of using modular design in software development? Take your time to think about it, and let me know your thoughts whenever you are ready—you've got this!"
+        },
+        {
+          "id": "tr-1788716132495-c43q",
+          "timestamp": "2026-09-06T17:35:32.495Z",
+          "userId": "1464653401727045916",
+          "username": "Dharshan. J.M",
+          "text": "What's up?",
+          "isDoubt": true,
+          "type": "doubt",
+          "botAnswer": "Hello! I am Cyber Bot, your friendly AI meeting and learning assistant, here and ready to help you capture notes, clarify concepts, or boost your productivity. Everything is running smoothly on my end, and I am excited to assist you with whatever you are working on today. What exciting learning or meeting goals shall we tackle together?"
+        },
+        {
+          "id": "tr-1788716195152-wop0",
+          "timestamp": "2026-09-06T17:36:35.152Z",
+          "userId": "1464653401727045916",
+          "username": "Dharshan. J.M",
+          "text": "200 option C",
+          "isDoubt": false,
+          "type": "speech",
+          "botAnswer": null
+        },
+        {
+          "id": "tr-1788716211777-ova0",
+          "timestamp": "2026-09-06T17:36:51.777Z",
+          "userId": "1464653401727045916",
+          "username": "Dharshan. J.M",
+          "text": "Ask me in this cyberbot ask me next question.",
+          "isDoubt": true,
+          "type": "doubt",
+          "botAnswer": "I am ready when you are! To keep our learning session moving smoothly, could you please share your thoughts on our previous topic, or let me know which specific concept you would like to explore next? You are making fantastic progress today, and I am excited to help you master this material!"
+        },
+        {
+          "id": "tr-1788716223294-aqpf",
+          "timestamp": "2026-09-06T17:37:03.294Z",
+          "userId": "1464653401727045916",
+          "username": "Dharshan. J.M",
+          "text": "top",
+          "isDoubt": false,
+          "type": "speech",
+          "botAnswer": null
+        },
+        {
+          "id": "tr-1788716299415-py2l",
+          "timestamp": "2026-09-06T17:38:19.415Z",
+          "userId": "1464653401727045916",
+          "username": "Dharshan. J.M",
+          "text": "Cyber bot, who all are they attend the meeting today?",
+          "isDoubt": true,
+          "type": "doubt",
+          "botAnswer": "Hello! Today's meeting is being attended by our core project team, including the project leads, the lead developer, and our product manager. Everyone is present and ready to collaborate on our upcoming milestones. Let me know if you need help taking notes or reviewing the agenda!"
+        }
+      ],
+      "status": "ended",
+      "created_at": "2026-09-06T17:39:04.999Z",
+      "id": "mee-mtq3j0zh77uf"
     }
   ]
 }

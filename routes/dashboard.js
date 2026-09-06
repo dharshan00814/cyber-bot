@@ -15,6 +15,7 @@ const whatsAppService = require('../services/whatsapp');
 const voiceMeetingService = require('../services/voiceMeetingService');
 const speechService = require('../services/speechService');
 const aiDoubtService = require('../services/aiDoubtService');
+const quizService = require('../services/quizService');
 const MeetingSession = require('../models/MeetingSession');
 
 function buildResponse(success, data, error, statusCode = 200) {
@@ -1011,7 +1012,7 @@ router.get('/meeting/key-status', (req, res) => {
 
 router.post('/meeting/save-key', (req, res) => {
     const { key } = req.body;
-    if (key && typeof key === 'string' && key.trim().length > 5) {
+    if (key && typeof key === 'string' && key.trim().length >= 20 && key.trim() !== 'admin123' && key.trim() !== process.env.DASHBOARD_PASSWORD) {
         process.env.GEMINI_API_KEY = key.trim();
         try {
             const envPath = path.join(__dirname, '..', '.env');
@@ -1029,7 +1030,7 @@ router.post('/meeting/save-key', (req, res) => {
         }
         return res.json({ success: true, message: 'Gemini API key saved and activated successfully!' });
     }
-    return res.status(400).json({ error: 'Please enter a valid Gemini API key.' });
+    return res.status(400).json({ error: 'Please enter a valid Gemini API key (at least 20 characters).' });
 });
 
 router.post('/meeting/join', async (req, res) => {
@@ -1060,6 +1061,16 @@ router.post('/meeting/leave', async (req, res) => {
     } catch (error) {
         console.error('Error leaving meeting:', error);
         res.status(500).json({ error: error.message || 'Failed to leave voice meeting' });
+    }
+});
+
+router.post('/meeting/stop', async (req, res) => {
+    try {
+        const result = voiceMeetingService.stopSpeaking();
+        res.json(result);
+    } catch (error) {
+        console.error('Error stopping speech:', error);
+        res.status(500).json({ error: error.message || 'Failed to stop speech' });
     }
 });
 
@@ -1134,6 +1145,48 @@ router.get('/meeting/history', async (req, res) => {
     } catch (error) {
         console.error('Error fetching meeting history:', error);
         res.status(500).json({ error: error.message || 'Failed to fetch meeting history' });
+    }
+});
+
+router.get('/quiz/active', (req, res) => {
+    try {
+        const active = Array.from(quizService.activeSessions.values()).map(s => ({
+            id: s.id,
+            channelId: s.channelId,
+            userId: s.userId,
+            userName: s.userName,
+            topic: s.questionData.topic,
+            question: s.questionData.question,
+            startedAt: s.startedAt,
+        }));
+        res.json({ success: true, activeSessions: active });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+router.post('/quiz/trigger', async (req, res) => {
+    try {
+        const { channelId, topic = 'Random', lang = 'en' } = req.body;
+        const targetChannelId = channelId || process.env.PROGRESS_CHANNEL_ID;
+        const channel = client.channels.cache.get(targetChannelId);
+
+        if (!channel || !channel.isTextBased()) {
+            return res.status(400).json({ error: `Channel ${targetChannelId} not found or not text-based` });
+        }
+
+        const botUser = client.user || { id: 'admin', username: 'Admin', displayName: 'Admin' };
+        const result = await quizService.askQuestion({
+            channel,
+            user: botUser,
+            topic,
+            lang,
+        });
+
+        res.json({ success: true, message: 'Quiz challenge posted to channel', result });
+    } catch (err) {
+        console.error('[Dashboard] Quiz trigger error:', err);
+        res.status(500).json({ error: err.message });
     }
 });
 

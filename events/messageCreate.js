@@ -1,11 +1,57 @@
 const { Events } = require('discord.js');
 const Member = require('../models/Member');
 const Progress = require('../models/Progress');
+const aiDoubtService = require('../services/aiDoubtService');
+const voiceMeetingService = require('../services/voiceMeetingService');
+const quizService = require('../services/quizService');
 
 const TRACKED_PROGRESS_CHANNEL_ID = process.env.PROGRESS_CHANNEL_ID || '1497882232843669514';
-const TRACKED_PROGRESS_CHANNEL_NAMES = new Set(['students-progress']);
+const TRACKED_PROGRESS_CHANNEL_NAMES = new Set(['students-progress', 'students-progess']);
 const POINTS_PER_PROGRESS_POST = 10;
 const BONUS_POINTS_FOR_DAILY_ALERT = 5;
+
+/**
+ * Splits text into chunks of at most maxLength characters without breaking words.
+ */
+function splitMessage(text, { maxLength = 1950 } = {}) {
+    if (!text || typeof text !== 'string') return [''];
+    if (text.length <= maxLength) return [text];
+
+    const chunks = [];
+    let remaining = text;
+
+    while (remaining.length > 0) {
+        if (remaining.length <= maxLength) {
+            chunks.push(remaining);
+            break;
+        }
+
+        // 1. Try splitting at paragraph boundary
+        let splitIdx = remaining.lastIndexOf('\n\n', maxLength);
+        // 2. Try splitting at single line break
+        if (splitIdx === -1 || splitIdx < maxLength / 3) {
+            splitIdx = remaining.lastIndexOf('\n', maxLength);
+        }
+        // 3. Try splitting after a sentence period
+        if (splitIdx === -1 || splitIdx < maxLength / 3) {
+            splitIdx = remaining.lastIndexOf('. ', maxLength);
+            if (splitIdx !== -1) splitIdx += 1; // Include the period
+        }
+        // 4. Try splitting at space
+        if (splitIdx === -1 || splitIdx < maxLength / 3) {
+            splitIdx = remaining.lastIndexOf(' ', maxLength);
+        }
+        // 5. Fallback: hard cut
+        if (splitIdx === -1 || splitIdx <= 0) {
+            splitIdx = maxLength;
+        }
+
+        chunks.push(remaining.substring(0, splitIdx).trim());
+        remaining = remaining.substring(splitIdx).trim();
+    }
+
+    return chunks.filter(c => c.length > 0);
+}
 
 function resolveProgressChannel(channel) {
     if (!channel) {
@@ -153,92 +199,165 @@ async function awardProgressPoints(message, trackedChannel) {
 module.exports = {
     name: Events.MessageCreate,
     async execute(message) {
+        // Ignore messages sent by bots and direct messages outside guilds
         if (!message.guild || message.author.bot) {
             return;
         }
 
-        // Natural Doubt Handling: If user mentions bot in chat (e.g. "Cyber bot, what is recursion?" or "பாட், recursion na enna?"), answer without requiring commands!
-        const aiDoubtService = require('../services/aiDoubtService');
-        const voiceMeetingService = require('../services/voiceMeetingService');
-        const speechService = require('../services/speechService');
-        const fs = require('fs');
-        const botId = message.client.user?.id;
+        // 0. Check for answers to an active Quiz & Dare challenge in this channel
+        const activeQuiz = quizService.getActiveSession(message.channel.id);
+        if (activeQuiz) {
+            const parsed = quizService.parseAnswerInput(message.content, activeQuiz.questionData);
+            if (parsed) {
+                const quizResult = await quizService.submitAnswer({
+                    channelId: message.channel.id,
+                    userId: message.author.id,
+                    user: message.author,
+                    answerInput: message.content,
+                });
 
-        if (aiDoubtService.isBotMentioned(message.content, process.env.WAKE_WORD, botId)) {
-            try {
-                const doubtResult = await aiDoubtService.solveDoubt(message.content);
-                const answer = doubtResult.spokenAnswer;
-
-                // 1. If user is in a voice channel, auto-connect bot to their voice channel so it can speak directly to them!
-                const userVoiceChannel = message.member?.voice?.channel;
-                if (userVoiceChannel) {
-                    if (!voiceMeetingService.isActive() || (voiceMeetingService.activeMeeting && voiceMeetingService.activeMeeting.channelId !== userVoiceChannel.id)) {
-                        try {
-                            await voiceMeetingService.joinMeeting({
-                                guildId: message.guild.id,
-                                channelId: userVoiceChannel.id,
-                                textChannelId: message.channel.id,
-                            });
-                        } catch (joinErr) {
-                            console.warn('[MessageCreate] Auto-joining voice channel failed:', joinErr.message);
-                        }
+                if (quizResult && quizResult.handled) {
+                    if (voiceMeetingService && voiceMeetingService.isActive() && quizResult.spokenResult) {
+                        voiceMeetingService.speak(quizResult.spokenResult, {
+                            type: quizResult.isCorrect ? 'quiz_correct' : 'quiz_dare',
+                            author: message.member?.displayName || message.author.username,
+                        }).catch(() => {});
                     }
+                    return;
                 }
-
-                // 2. Synthesize spoken voice audio (Edge TTS / Google TTS with Tamil neural voice if Tamil)
-                const voice = doubtResult.isTamil ? 'ta-IN-PallaviNeural' : undefined;
-                let audioFilePath = null;
-                try {
-                    const synthResult = await speechService.synthesizeSpeechToFile(answer, { voice });
-                    audioFilePath = synthResult.filePath;
-                } catch (ttsErr) {
-                    console.warn('[MessageCreate] Spoken speech synthesis error:', ttsErr.message);
-                }
-
-                // 3. If bot is in a voice channel, speak the answer aloud live!
-                if (voiceMeetingService.isActive()) {
-                    const speakMeta = {
-                        type: 'doubt_answer',
-                        author: message.member?.displayName || message.author.username,
-                        question: doubtResult.question,
-                    };
-                    if (doubtResult.isTamil) {
-                        speakMeta.voice = 'ta-IN-PallaviNeural';
-                    }
-                    await voiceMeetingService.speak(answer, speakMeta);
-                }
-
-                // 4. Send Discord reply with text embed AND playable spoken audio file attached
-                const { EmbedBuilder, AttachmentBuilder } = require('discord.js');
-                const embed = new EmbedBuilder()
-                    .setTitle('💡 Doubt Clarified / சந்தேகம் தெளிவுபடுத்தப்பட்டது')
-                    .addFields(
-                        { name: 'Question / கேள்வி', value: doubtResult.question || message.content },
-                        { name: 'Spoken Explanation / விளக்கம்', value: answer }
-                    )
-                    .setColor(0x10b981)
-                    .setFooter({
-                        text: `Language: ${doubtResult.isTamil ? 'Tamil (தமிழ்)' : 'English'} • Source: ${doubtResult.provider} • 🔊 Speaking reply aloud`
-                    })
-                    .setTimestamp();
-
-                const replyPayload = { embeds: [embed] };
-                if (audioFilePath && fs.existsSync(audioFilePath)) {
-                    replyPayload.files = [
-                        new AttachmentBuilder(audioFilePath, {
-                            name: doubtResult.isTamil ? 'cyber_bot_tamil_speech.mp3' : 'cyber_bot_speech.mp3',
-                            description: 'Spoken voice explanation',
-                        }),
-                    ];
-                }
-
-                await message.reply(replyPayload);
-                return;
-            } catch (err) {
-                console.error('[MessageCreate] Error clarifying doubt:', err);
             }
         }
 
+        // Check for direct Question & Dare request without explicit mention (e.g. "ask me a question", "quiz me", "கேள்வி கேளுங்க")
+        if (quizService.isQuizRequest(message.content)) {
+            const isTamil = aiDoubtService.isTamilText(message.content);
+            const quizResult = await quizService.askQuestion({
+                channel: message.channel,
+                user: message.author,
+                topic: isTamil ? 'Tamil' : 'Random',
+                lang: isTamil ? 'ta' : 'en',
+            });
+
+            if (quizResult && voiceMeetingService && voiceMeetingService.isActive() && quizResult.spokenQuestion) {
+                voiceMeetingService.speak(quizResult.spokenQuestion, {
+                    type: 'quiz_question',
+                    author: 'Cyber Bot',
+                }).catch(() => {});
+            }
+            return;
+        }
+
+        // 1. Natural Doubt Handling: Check if member is talking directly to the bot
+        if (aiDoubtService.isBotMentioned(message)) {
+            try {
+                // Send typing indicator so the member immediately sees the bot is working
+                await message.channel.sendTyping().catch(() => {});
+
+                // Extract clean question without bot mentions or wake words
+                const cleanQuestion = aiDoubtService.cleanDoubtText(message.content, {
+                    botId: message.client.user?.id,
+                    client: message.client,
+                    guild: message.guild,
+                });
+
+                // Check for immediate STOP command (e.g. "@MeetingBot stop", "stop", "stop talking")
+                if (aiDoubtService.isStopRequested(cleanQuestion || message.content)) {
+                    if (voiceMeetingService && voiceMeetingService.isActive()) {
+                        voiceMeetingService.stopSpeaking();
+                    }
+                    await message.reply({
+                        content: '⏹️ Stopped speaking.',
+                        allowedMentions: { repliedUser: true },
+                    });
+                    return;
+                }
+
+                // Check for Question & Dare request when mentioning the bot (e.g. "@MeetingBot ask me a question", "quiz me")
+                if (quizService.isQuizRequest(cleanQuestion || message.content)) {
+                    const isTamil = aiDoubtService.isTamilText(cleanQuestion || message.content);
+                    const quizResult = await quizService.askQuestion({
+                        channel: message.channel,
+                        user: message.author,
+                        topic: isTamil ? 'Tamil' : 'Random',
+                        lang: isTamil ? 'ta' : 'en',
+                    });
+
+                    if (quizResult && voiceMeetingService && voiceMeetingService.isActive() && quizResult.spokenQuestion) {
+                        voiceMeetingService.speak(quizResult.spokenQuestion, {
+                            type: 'quiz_question',
+                            author: 'Cyber Bot',
+                        }).catch(() => {});
+                    }
+                    return;
+                }
+
+                // If the user only pinged/mentioned the bot with no actual question
+                if (!cleanQuestion || cleanQuestion.length === 0) {
+                    const botName = message.guild?.members?.me?.displayName || message.client.user?.username || 'Bot';
+                    await message.reply({
+                        content: `👋 Hello <@${message.author.id}>! How can I help you? Ask me any technical question or doubt (e.g. \`@${botName} what is an API?\`).`,
+                        allowedMentions: { repliedUser: true },
+                    });
+                    return;
+                }
+
+                // Generate AI answer using Gemini or intelligent local knowledge base fallback
+                const doubtResult = await aiDoubtService.solveDoubt(cleanQuestion, {
+                    lang: aiDoubtService.isTamilText(message.content) ? 'ta' : 'en',
+                });
+
+                const answer = doubtResult.answer || doubtResult.spokenAnswer || "I'm sorry, I couldn't generate an explanation for that.";
+
+                // Safely split into chunks <= 1950 characters to stay within Discord's 2000-character limit
+                const chunks = splitMessage(answer, { maxLength: 1950 });
+                for (let i = 0; i < chunks.length; i++) {
+                    if (i === 0) {
+                        await message.reply({
+                            content: chunks[i],
+                            allowedMentions: { repliedUser: true },
+                        });
+                    } else {
+                        await message.channel.send({
+                            content: chunks[i],
+                        });
+                    }
+                }
+
+                // If a voice meeting is currently running, also speak the explanation aloud asynchronously
+                if (voiceMeetingService && voiceMeetingService.isActive()) {
+                    try {
+                        const speakMeta = {
+                            type: 'doubt_answer',
+                            author: message.member?.displayName || message.author.username,
+                            question: cleanQuestion,
+                        };
+                        if (doubtResult.isTamil) {
+                            speakMeta.voice = 'ta-IN-PallaviNeural';
+                        }
+                        voiceMeetingService.speak(doubtResult.spokenAnswer || answer, speakMeta).catch(err => {
+                            console.warn('[MessageCreate] Speaking in active voice meeting failed:', err.message);
+                        });
+                    } catch (voiceErr) {
+                        console.warn('[MessageCreate] Voice meeting speak error:', voiceErr.message);
+                    }
+                }
+
+                return; // Handled doubt; do not fall through to progress tracking
+            } catch (err) {
+                console.error('[MessageCreate] Error clarifying doubt:', err);
+                try {
+                    await message.reply({
+                        content: "Sorry, I couldn't process that question right now. Please try again.",
+                        allowedMentions: { repliedUser: true },
+                    });
+                } catch (replyErr) {
+                    console.error('[MessageCreate] Failed to send error response:', replyErr);
+                }
+                return;
+            }
+        }
+
+        // 2. Progress Tracking System in designated channels
         const trackedChannel = resolveProgressChannel(message.channel);
 
         if (!trackedChannel) {

@@ -1,9 +1,28 @@
 const { Events, Collection } = require('discord.js');
 const { handleError } = require('../utils/errorHandling');
+const quizService = require('../services/quizService');
 
 module.exports = {
     name: Events.InteractionCreate,
     async execute(interaction, client) {
+        // Handle Button Interactions (e.g. Quiz & Dare buttons)
+        if (interaction.isButton()) {
+            if (interaction.customId.startsWith('quiz_')) {
+                try {
+                    await quizService.submitAnswer({
+                        channelId: interaction.channelId,
+                        userId: interaction.user.id,
+                        user: interaction.user,
+                        interaction,
+                    });
+                } catch (btnErr) {
+                    console.error('[InteractionCreate] Error handling quiz button:', btnErr);
+                }
+                return;
+            }
+            return;
+        }
+
         if (!interaction.isChatInputCommand()) return;
 
         const command = client.commands.get(interaction.commandName);

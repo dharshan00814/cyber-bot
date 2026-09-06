@@ -190,35 +190,37 @@ async function synthesizeSpeechToFile(text, options = {}) {
     }
 }
 
-async function transcribeAudioWithGemini(wavBuffer) {
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) {
-        return { success: false, error: 'GEMINI_API_KEY not configured' };
+async function transcribeAudioWithGemini(audioBuffer, mimeType = 'audio/wav') {
+    const apiKey = process.env.GEMINI_API_KEY || process.env.AI_API_KEY;
+    if (!apiKey || apiKey === 'your_gemini_api_key_here') {
+        return { success: false, error: 'GEMINI_API_KEY or AI_API_KEY not configured in .env' };
     }
 
     const { GoogleGenerativeAI } = require('@google/generative-ai');
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const candidateModels = ['gemini-3.5-flash', 'gemini-3.5-flash-lite', 'gemini-flash-latest', 'gemini-3.7-flash', 'gemini-3.6-flash'];
+    const genAI = new GoogleGenerativeAI(apiKey.trim());
+    const candidateModels = [
+        process.env.GEMINI_MODEL || process.env.AI_MODEL,
+        'gemini-3.5-flash-lite',
+        'gemini-3.5-flash',
+        'gemini-2.5-flash',
+        'gemini-2.0-flash',
+        'gemini-1.5-flash',
+    ].filter(Boolean);
 
-    const prompt = `You are an AI meeting assistant listening to student voice audio in a learning group meeting.
-The participants speak in English, Tamil (தமிழ்), or Tanglish (Tamil written in English alphabet).
-Listen carefully to the speech in this audio clip.
-1. Transcribe the words spoken as accurately as possible in the language spoken.
-2. Check if the speaker explicitly mentions or addresses the bot name (e.g. "Cyber Bot", "Cyberbot", "Hey Bot", "Bot", "சைபர் பாட்", "பாட்").
-3. Determine if the user is asking a question or doubt.
-4. Extract the clean question or doubt text.
-5. Identify if the language is Tamil or Tanglish.
+    const prompt = `You are a speech-to-text audio transcriber and assistant for a live Discord learning meeting.
+Participants speak in English, Tamil (தமிழ்), or Tanglish (Tamil written in English alphabet).
+Listen to the audio clip carefully:
+1. Transcribe the spoken words accurately in the language spoken.
+2. If the audio is silence, room background noise, breathing, or unintelligible noise with no clear human words, set transcript to "" (empty string), isDoubt to false, and isBotMentioned to false.
+3. Check if the speaker addresses the bot (e.g. "Cyber Bot", "MeetingBot", "Cyberbot", "Hey Bot", "Bot", "சைபர் பாட்", "பாட்").
+4. Determine if the speaker is asking a doubt, question, or technical explanation (e.g. asking "what is...", "explain...", "how does...", "can you...", "I have a doubt...", "ரெக்கர்ஷன் என்றால் என்ன", "enna", "epdi").
+5. Extract the clean question or doubt text.
+6. Detect if the language is Tamil or Tanglish.
 
-Respond ONLY with a valid JSON object in this exact format:
-{
-    "transcript": "exact transcription of speech",
-    "isBotMentioned": true/false,
-    "isDoubt": true/false,
-    "isTamil": true/false,
-    "doubtText": "the extracted question or doubt, or empty string"
-}`;
+Respond ONLY with a valid JSON object in this exact format, with NO markdown code fences or backticks:
+{"transcript":"exact spoken words or empty string","isBotMentioned":true,"isDoubt":true,"isTamil":false,"doubtText":"clean question text"}`;
 
-    const base64Audio = wavBuffer.toString('base64');
+    const base64Audio = audioBuffer.toString('base64');
     let lastError = null;
 
     for (const modelName of candidateModels) {
@@ -228,7 +230,7 @@ Respond ONLY with a valid JSON object in this exact format:
                 prompt,
                 {
                     inlineData: {
-                        mimeType: 'audio/wav',
+                        mimeType,
                         data: base64Audio,
                     },
                 },
@@ -238,13 +240,16 @@ Respond ONLY with a valid JSON object in this exact format:
             const jsonMatch = responseText.match(/\{[\s\S]*\}/);
             if (jsonMatch) {
                 const parsed = JSON.parse(jsonMatch[0]);
+                const transcript = (parsed.transcript || '').trim();
+                const isSilent = !transcript || transcript.toLowerCase() === 'empty';
+
                 return {
                     success: true,
-                    transcript: parsed.transcript || '',
-                    isBotMentioned: !!parsed.isBotMentioned,
-                    isDoubt: !!parsed.isDoubt,
-                    isTamil: !!parsed.isTamil,
-                    doubtText: parsed.doubtText || parsed.transcript || '',
+                    transcript: isSilent ? '' : transcript,
+                    isBotMentioned: isSilent ? false : !!parsed.isBotMentioned,
+                    isDoubt: isSilent ? false : !!parsed.isDoubt,
+                    isTamil: isSilent ? false : !!parsed.isTamil,
+                    doubtText: isSilent ? '' : (parsed.doubtText || transcript),
                     model: modelName,
                 };
             }
@@ -253,8 +258,8 @@ Respond ONLY with a valid JSON object in this exact format:
             return {
                 success: true,
                 transcript: responseText,
-                isBotMentioned: /cyber\s*bot|bot|சைபர்\s*பாட்|பாட்/i.test(responseText),
-                isDoubt: responseText.includes('?') || /how|what|why|explain|என்ன|எப்படி|சொல்லுங்க/i.test(responseText),
+                isBotMentioned: /cyber\s*bot|bot|meeting\s*bot|சைபர்\s*பாட்|பாட்/i.test(responseText),
+                isDoubt: responseText.includes('?') || /\b(how|what|why|explain|tell|difference|என்ன|எப்படி|சொல்லுங்க)\b/i.test(responseText),
                 isTamil,
                 doubtText: responseText,
                 model: modelName,

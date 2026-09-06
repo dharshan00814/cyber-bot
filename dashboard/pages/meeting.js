@@ -15,7 +15,6 @@ const pageMeeting = {
             this.fetchChannels(),
             this.fetchStatus(),
             this.fetchHistory(),
-            this.checkGeminiStatus(),
         ]);
         this.startLivePolling();
     },
@@ -33,13 +32,10 @@ const pageMeeting = {
             leaveBtn.addEventListener('click', () => this.handleLeave());
         }
 
-        const askForm = document.getElementById('meeting-ask-form');
-        if (askForm && !askForm.dataset.bound) {
-            askForm.dataset.bound = 'true';
-            askForm.addEventListener('submit', (e) => {
-                e.preventDefault();
-                this.handleAskDoubt();
-            });
+        const stopBtn = document.getElementById('meeting-stop-btn');
+        if (stopBtn && !stopBtn.dataset.bound) {
+            stopBtn.dataset.bound = 'true';
+            stopBtn.addEventListener('click', () => this.handleStopSpeaking());
         }
 
         const testTtsBtn = document.getElementById('meeting-test-tts-btn');
@@ -47,66 +43,9 @@ const pageMeeting = {
             testTtsBtn.dataset.bound = 'true';
             testTtsBtn.addEventListener('click', () => this.handleTestTts());
         }
-
-        const micBtn = document.getElementById('meeting-mic-toggle-btn');
-        if (micBtn && !micBtn.dataset.bound) {
-            micBtn.dataset.bound = 'true';
-            micBtn.addEventListener('click', () => this.toggleMicrophone());
-        }
-
-        const saveGeminiBtn = document.getElementById('meeting-save-gemini-btn');
-        if (saveGeminiBtn && !saveGeminiBtn.dataset.bound) {
-            saveGeminiBtn.dataset.bound = 'true';
-            saveGeminiBtn.addEventListener('click', () => this.handleSaveGeminiKey());
-        }
     },
 
-    async checkGeminiStatus() {
-        try {
-            const data = await api.get('/dashboard/meeting/key-status');
-            const statusEl = document.getElementById('meeting-gemini-status');
-            const inputEl = document.getElementById('meeting-gemini-key');
-            if (statusEl) {
-                if (data.hasGeminiKey) {
-                    statusEl.innerHTML = '<span style="color:#10b981; font-weight:600;">✅ Gemini Key Connected & Active!</span> In-Discord voice & generative doubts enabled.';
-                    if (inputEl) inputEl.placeholder = '•••••••••••••••••••• (Connected)';
-                } else {
-                    statusEl.innerHTML = '<span style="color:#f59e0b;">⚠️ No Gemini Key Set.</span> Add your key here or in <code>.env</code>.';
-                }
-            }
-        } catch (e) {
-            console.warn('Error checking Gemini key status:', e.message);
-        }
-    },
 
-    async handleSaveGeminiKey() {
-        const input = document.getElementById('meeting-gemini-key');
-        const key = input ? input.value.trim() : '';
-        if (!key) {
-            app.toast('Please enter a valid Gemini API key.', 'warning');
-            return;
-        }
-
-        const btn = document.getElementById('meeting-save-gemini-btn');
-        if (btn) {
-            btn.disabled = true;
-            btn.textContent = 'Saving...';
-        }
-
-        try {
-            const res = await api.post('/dashboard/meeting/save-key', { key });
-            app.toast(res.message || 'Gemini key saved successfully!', 'success');
-            if (input) input.value = '';
-            await this.checkGeminiStatus();
-        } catch (err) {
-            app.toast(err.message || 'Failed to save Gemini key', 'error');
-        } finally {
-            if (btn) {
-                btn.disabled = false;
-                btn.textContent = 'Save Key';
-            }
-        }
-    },
 
     startLivePolling() {
         if (this.pollTimer) clearInterval(this.pollTimer);
@@ -226,6 +165,8 @@ const pageMeeting = {
 
         if (joinBtn) joinBtn.disabled = isActive;
         if (leaveBtn) leaveBtn.disabled = !isActive;
+        const stopBtn = document.getElementById('meeting-stop-btn');
+        if (stopBtn) stopBtn.disabled = !isActive;
         if (channelSelect && isActive && s.channelId) {
             channelSelect.value = s.channelId;
             channelSelect.disabled = true;
@@ -429,131 +370,21 @@ const pageMeeting = {
             app.toast(err.message || 'Failed to leave meeting', 'error');
         } finally {
             if (leaveBtn) {
-                leaveBtn.textContent = '⏹️ Leave Meeting';
+                leaveBtn.textContent = '🚪 Leave Meeting';
                 leaveBtn.disabled = !this.meetingStatus.active;
             }
         }
     },
 
-    toggleMicrophone() {
-        if (this.isListening) {
-            this.stopListening();
-        } else {
-            this.startListening();
-        }
-    },
-
-    startListening() {
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        if (!SpeechRecognition) {
-            app.toast('Speech Recognition is not supported by your browser. Please use Chrome, Edge, or Brave.', 'warning');
-            return;
-        }
-
-        const micBtn = document.getElementById('meeting-mic-toggle-btn');
-        const statusText = document.getElementById('meeting-mic-status-text');
-        const liveBox = document.getElementById('meeting-live-speech-box');
-        const liveText = document.getElementById('meeting-live-speech-text');
-        const langSelect = document.getElementById('meeting-mic-lang');
-        const selectedLang = langSelect ? langSelect.value : 'en-US';
-
+    async handleStopSpeaking() {
         try {
-            if (this.recognition) {
-                try { this.recognition.abort(); } catch (e) {}
-            }
-
-            this.recognition = new SpeechRecognition();
-            this.recognition.lang = selectedLang;
-            this.recognition.continuous = true;
-            this.recognition.interimResults = true;
-
-            let finalTranscript = '';
-
-            this.recognition.onstart = () => {
-                this.isListening = true;
-                if (micBtn) {
-                    micBtn.style.background = 'rgba(239, 68, 68, 0.2)';
-                    micBtn.style.borderColor = '#ef4444';
-                    micBtn.style.color = '#ef4444';
-                    micBtn.style.boxShadow = '0 0 25px rgba(239, 68, 68, 0.6)';
-                    micBtn.style.animation = 'pulse 1.2s infinite';
-                    micBtn.innerHTML = '⏹️';
-                }
-                if (statusText) {
-                    statusText.innerHTML = '<span style="color:#ef4444;">🔴 Listening...</span> Speak your doubt now!';
-                }
-                if (liveBox) liveBox.style.display = 'block';
-                if (liveText) liveText.textContent = 'Say "Cyber Bot, what is..." or "பாட், ..."';
-            };
-
-            this.recognition.onresult = (event) => {
-                let interimTranscript = '';
-                for (let i = event.resultIndex; i < event.results.length; ++i) {
-                    const transcript = event.results[i][0].transcript;
-                    if (event.results[i].isFinal) {
-                        finalTranscript += transcript + ' ';
-                    } else {
-                        interimTranscript += transcript;
-                    }
-                }
-
-                const display = (finalTranscript + ' ' + interimTranscript).trim();
-                if (liveText && display) {
-                    liveText.textContent = `"${display}"`;
-                }
-
-                const input = document.getElementById('meeting-doubt-input');
-                if (input && display) {
-                    input.value = display;
-                }
-            };
-
-            this.recognition.onerror = (event) => {
-                console.warn('[Meeting] Speech recognition event:', event.error);
-                if (event.error === 'not-allowed') {
-                    app.toast('Microphone permission denied. Please allow microphone access.', 'error');
-                }
-                this.stopListening();
-            };
-
-            this.recognition.onend = () => {
-                this.stopListening();
-                // If user spoke something, automatically submit it!
-                const spokenText = (finalTranscript || '').trim();
-                if (spokenText) {
-                    app.toast('Voice recognized! Asking Cyber Bot...', 'info');
-                    this.handleAskDoubt(spokenText);
-                }
-            };
-
-            this.recognition.start();
+            app.toast('Stopping speech immediately...', 'info');
+            const res = await api.post('/dashboard/meeting/stop');
+            app.toast(res.message || 'Stopped speaking.', 'success');
+            await this.fetchStatus();
         } catch (err) {
-            console.error('Error starting speech recognition:', err);
-            app.toast('Failed to start microphone: ' + err.message, 'error');
-            this.stopListening();
-        }
-    },
-
-    stopListening() {
-        this.isListening = false;
-        if (this.recognition) {
-            try { this.recognition.stop(); } catch (e) {}
-            this.recognition = null;
-        }
-
-        const micBtn = document.getElementById('meeting-mic-toggle-btn');
-        const statusText = document.getElementById('meeting-mic-status-text');
-
-        if (micBtn) {
-            micBtn.style.background = 'rgba(0, 212, 255, 0.1)';
-            micBtn.style.borderColor = '#00d4ff';
-            micBtn.style.color = '#00d4ff';
-            micBtn.style.boxShadow = '0 0 15px rgba(0, 212, 255, 0.2)';
-            micBtn.style.animation = 'none';
-            micBtn.innerHTML = '🎙️';
-        }
-        if (statusText) {
-            statusText.textContent = 'Click microphone to start speaking';
+            console.error('Stop speaking error:', err);
+            app.toast(err.message || 'Failed to stop speaking', 'error');
         }
     },
 
@@ -570,75 +401,6 @@ const pageMeeting = {
             });
         } catch (e) {
             console.warn('[Meeting] Audio play error:', e);
-        }
-    },
-
-    async handleAskDoubt(explicitDoubt = null) {
-        const input = document.getElementById('meeting-doubt-input');
-        const doubt = explicitDoubt || (input ? input.value.trim() : '');
-
-        if (!doubt) {
-            app.toast('Please type or speak a doubt to clarify.', 'warning');
-            return;
-        }
-
-        const submitBtn = document.getElementById('meeting-doubt-submit-btn');
-        if (submitBtn) {
-            submitBtn.disabled = true;
-            submitBtn.textContent = 'Explaining...';
-        }
-
-        try {
-            app.toast('Analyzing doubt & synthesizing spoken reply...', 'info');
-            const res = await api.post('/dashboard/meeting/ask', { question: doubt });
-
-            const isTamil = !!res.isTamil;
-            const langLabel = isTamil ? 'தமிழ் / Tamil' : 'English';
-
-            if (res.spokenInDiscord || res.spoken) {
-                app.toast('🔊 Bot is speaking the answer live in Discord!', 'success');
-            } else {
-                app.toast('🔊 Spoken answer synthesized!', 'success');
-            }
-
-            // Play the spoken audio directly in the browser so the user hears it immediately!
-            if (res.audioUrl) {
-                this.playAudio(res.audioUrl);
-            }
-
-            const answerCard = document.getElementById('meeting-latest-answer');
-            if (answerCard) {
-                answerCard.style.display = 'block';
-                answerCard.innerHTML = `
-                    <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px; padding: 14px; margin-top: 12px;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                            <strong style="color: #34d399; font-size: 13px;">💡 Spoken Answer (${langLabel} • ${res.provider || 'AI Tutor'})</strong>
-                            <div style="display: flex; gap: 8px; align-items: center;">
-                                <span style="font-size: 11px; color: var(--text-secondary);">${new Date().toLocaleTimeString()}</span>
-                                ${res.audioUrl ? `
-                                    <button class="btn btn-secondary btn-sm" onclick="pageMeeting.playAudio('${res.audioUrl}')" style="padding: 2px 8px; font-size: 11px;">
-                                        🔊 Replay Voice
-                                    </button>
-                                ` : ''}
-                            </div>
-                        </div>
-                        <p style="margin: 0 0 6px 0; font-size: 13px; color: var(--text-secondary);"><strong>Q:</strong> "${res.question || doubt}"</p>
-                        <p style="margin: 0; font-size: 14px; color: var(--text-primary); line-height: 1.5;">${res.spokenAnswer || res.answer}</p>
-                        ${res.spokenInDiscord ? '<div style="margin-top: 8px; font-size: 11.5px; color: #00d4ff;">🎙️ Also spoken aloud in Discord voice channel!</div>' : ''}
-                    </div>
-                `;
-            }
-
-            if (input) input.value = '';
-            await this.fetchStatus();
-        } catch (err) {
-            console.error('Ask doubt error:', err);
-            app.toast(err.message || 'Failed to explain doubt', 'error');
-        } finally {
-            if (submitBtn) {
-                submitBtn.disabled = false;
-                submitBtn.textContent = '🔊 Explain Aloud';
-            }
         }
     },
 
@@ -671,14 +433,6 @@ const pageMeeting = {
                 btn.disabled = false;
                 btn.textContent = '🔊 Test Voice';
             }
-        }
-    },
-
-    setDoubtInput(sampleQuestion) {
-        const input = document.getElementById('meeting-doubt-input');
-        if (input) {
-            input.value = sampleQuestion;
-            input.focus();
         }
     },
 };

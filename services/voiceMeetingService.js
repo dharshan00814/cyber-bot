@@ -13,6 +13,7 @@ const { EmbedBuilder } = require('discord.js');
 const client = require('../utils/client');
 const speechService = require('./speechService');
 const aiDoubtService = require('./aiDoubtService');
+const quizService = require('./quizService');
 const MeetingSession = require('../models/MeetingSession');
 const Attendance = require('../models/Attendance');
 const Member = require('../models/Member');
@@ -106,6 +107,16 @@ class VoiceMeetingService {
             selfDeaf: false,
             selfMute: false,
         });
+
+        try {
+            console.log(`[VoiceMeeting] Waiting for connection READY state in ${voiceChannel.name}...`);
+            await entersState(connection, VoiceConnectionStatus.Ready, 20_000);
+            console.log(`[VoiceMeeting] Connection is READY in ${voiceChannel.name}`);
+        } catch (connErr) {
+            console.error(`[VoiceMeeting] Failed to reach READY state in ${voiceChannel.name}:`, connErr.message);
+            try { connection.destroy(); } catch (e) {}
+            throw new Error(`Failed to establish voice connection: ${connErr.message}`);
+        }
 
         const player = createAudioPlayer({
             behaviors: {
@@ -290,7 +301,7 @@ class VoiceMeetingService {
     }
 
     captureUserAudioStream(userId, guild) {
-        if (!this.activeMeeting || this.activeMeeting.isBotSpeaking) return;
+        if (!this.activeMeeting) return;
         if (!this.activeStreams) this.activeStreams = new Set();
         if (this.activeStreams.has(userId)) return;
 
@@ -300,7 +311,7 @@ class VoiceMeetingService {
             const opusStream = this.activeMeeting.receiver.subscribe(userId, {
                 end: {
                     behavior: EndBehaviorType.AfterSilence,
-                    duration: 800,
+                    duration: 1000,
                 },
             });
 
@@ -312,6 +323,28 @@ class VoiceMeetingService {
 
             const pcmChunks = [];
             let totalBytes = 0;
+            let finished = false;
+
+            const finishCapture = async () => {
+                if (finished) return;
+                finished = true;
+                this.activeStreams.delete(userId);
+                clearTimeout(safetyTimeout);
+
+                if (pcmChunks.length === 0 || totalBytes < 15000) {
+                    // Less than ~0.1 seconds of audio
+                    return;
+                }
+
+                const member = guild ? guild.members.cache.get(userId) : null;
+                const username = member ? (member.displayName || member.user.username) : 'Student';
+
+                console.log(`[VoiceMeeting] Captured ${totalBytes} bytes of voice audio from ${username} (${userId})`);
+                const pcmBuffer = Buffer.concat(pcmChunks);
+                const wavBuffer = speechService.pcmToWav(pcmBuffer, 48000, 2, 16);
+
+                await this.processRecordedAudio(userId, username, wavBuffer);
+            };
 
             opusStream.pipe(opusDecoder);
 
@@ -320,81 +353,196 @@ class VoiceMeetingService {
                 totalBytes += chunk.length;
             });
 
-            opusDecoder.on('end', async () => {
-                this.activeStreams.delete(userId);
-                if (pcmChunks.length === 0 || totalBytes < 15000) {
-                    // Less than ~0.2 seconds of speech or background noise
-                    return;
-                }
+            opusDecoder.on('end', finishCapture);
+            opusDecoder.on('finish', finishCapture);
+            opusDecoder.on('close', finishCapture);
 
-                const member = guild ? guild.members.cache.get(userId) : null;
-                const username = member ? (member.displayName || member.user.username) : 'Student';
-
-                const pcmBuffer = Buffer.concat(pcmChunks);
-                const wavBuffer = speechService.pcmToWav(pcmBuffer, 48000, 2, 16);
-
-                await this.processRecordedAudio(userId, username, wavBuffer);
+            opusStream.on('end', () => {
+                setTimeout(finishCapture, 250);
             });
-
+            opusStream.on('close', () => {
+                setTimeout(finishCapture, 250);
+            });
+            opusStream.on('error', (err) => {
+                console.warn('[VoiceMeeting] Opus stream error:', err.message);
+                finishCapture();
+            });
             opusDecoder.on('error', (err) => {
-                this.activeStreams.delete(userId);
+                console.warn('[VoiceMeeting] Opus decoder error:', err.message);
+                finishCapture();
             });
+
+            // 20-second max safety timeout for a single speech turn
+            const safetyTimeout = setTimeout(() => {
+                try { opusStream.destroy(); } catch (e) {}
+                finishCapture();
+            }, 20000);
         } catch (e) {
             this.activeStreams.delete(userId);
             console.warn('[VoiceMeeting] Error capturing audio stream:', e.message);
         }
     }
 
+    stopSpeaking() {
+        if (!this.activeMeeting) {
+            return { success: false, message: 'No active meeting' };
+        }
+
+        console.log('[VoiceMeeting] ⏹️ Stopping speech and clearing audio queue immediately...');
+        this.audioQueue = [];
+
+        if (this.activeMeeting.player) {
+            try {
+                this.activeMeeting.player.stop(true);
+            } catch (e) {
+                console.warn('[VoiceMeeting] Error stopping audio player:', e.message);
+            }
+        }
+
+        this.isPlayingAudio = false;
+        this.activeMeeting.isBotSpeaking = false;
+
+        return {
+            success: true,
+            message: 'Immediately stopped speaking',
+        };
+    }
+
     async processRecordedAudio(userId, username, wavBuffer) {
         if (!this.activeMeeting) return;
 
-        // Try transcribing with Gemini
+        console.log(`[VoiceMeeting] Sending ${wavBuffer.length} bytes to Gemini STT for ${username}...`);
         const transcriptionResult = await speechService.transcribeAudioWithGemini(wavBuffer);
 
         if (!transcriptionResult || !transcriptionResult.success) {
             console.warn(`[VoiceMeeting] Audio from ${username} (${wavBuffer.length} bytes): ${transcriptionResult?.error || 'No speech detected'}`);
-            if (!process.env.GEMINI_API_KEY && !this.geminiWarningGiven) {
+            if (!process.env.GEMINI_API_KEY && !process.env.AI_API_KEY && !this.geminiWarningGiven) {
                 this.geminiWarningGiven = true;
                 if (this.activeMeeting.textChannelId) {
                     const textChannel = client.channels.cache.get(this.activeMeeting.textChannelId);
                     if (textChannel && textChannel.isTextBased()) {
-                        textChannel.send('🎙️ **Voice Heard!** To have the bot transcribe your Discord voice and answer automatically, add a free **GEMINI_API_KEY** in `.env` (free at https://aistudio.google.com). Or use the Live Web Mic on the dashboard!').catch(() => {});
+                        textChannel.send('🎙️ **Voice Heard!** To have Cyber Bot transcribe voice and answer doubts aloud in Discord, configure a valid **GEMINI_API_KEY** in `.env`.').catch(() => {});
                     }
                 }
             }
             return;
         }
 
-        if (transcriptionResult.transcript) {
-            const transcript = transcriptionResult.transcript.trim();
-            if (!transcript) return;
+        const transcript = (transcriptionResult.transcript || '').trim();
+        if (!transcript || transcript.length < 2 || transcript.toLowerCase() === 'empty') {
+            return; // Silence or background noise
+        }
 
-            const botId = client.user ? client.user.id : null;
-            const isBotAddressed = transcriptionResult.isBotMentioned || aiDoubtService.isBotMentioned(transcript, process.env.WAKE_WORD, botId);
+        console.log(`[VoiceMeeting] Transcribed from ${username}: "${transcript}" (botMentioned=${transcriptionResult.isBotMentioned}, isDoubt=${transcriptionResult.isDoubt})`);
 
-            const isQuestion = isBotAddressed && (transcriptionResult.isDoubt || aiDoubtService.isDoubt(transcript, process.env.WAKE_WORD, botId));
-            const doubtQuestion = transcriptionResult.doubtText || transcript;
-
-            const transcriptEntry = {
-                id: `tr-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
-                timestamp: new Date(),
-                userId,
-                username,
-                text: transcript,
-                isDoubt: isQuestion,
-                type: isQuestion ? 'doubt' : 'speech',
-                botAnswer: null,
-            };
-
-            this.activeMeeting.transcripts.push(transcriptEntry);
-
-            // ONLY reply if the bot was explicitly addressed by name!
-            if (isQuestion) {
-                console.log(`[VoiceMeeting] Question addressed to bot from ${username}: "${doubtQuestion}"`);
-                await this.handleDoubtClarification(doubtQuestion, username, transcriptEntry);
-            } else {
-                console.log(`[VoiceMeeting] Conversation logged from ${username} (bot not addressed): "${transcript}"`);
+        // 1. Check for immediate STOP command (e.g. "stop", "stop talking", "bot stop", "போதும்", "நிறுத்து")
+        if (aiDoubtService.isStopRequested(transcript)) {
+            console.log(`[VoiceMeeting] ⏹️ STOP command received from ${username}: "${transcript}". Halting speech immediately.`);
+            this.stopSpeaking();
+            if (this.activeMeeting.textChannelId) {
+                const textChannel = client.channels.cache.get(this.activeMeeting.textChannelId);
+                if (textChannel && textChannel.isTextBased()) {
+                    textChannel.send(`⏹️ **Stopped speaking** (interrupted by ${username})`).catch(() => {});
+                }
             }
+            return;
+        }
+
+        // 1.5. Check if member is answering an active Quiz & Dare session
+        const activeQuiz = this.activeMeeting.textChannelId
+            ? quizService.getActiveSession(this.activeMeeting.textChannelId)
+            : null;
+
+        if (activeQuiz) {
+            const parsed = quizService.parseAnswerInput(transcript, activeQuiz.questionData);
+            if (parsed) {
+                console.log(`[VoiceMeeting] 🧠 Spoken quiz answer detected from ${username}: "${transcript}"`);
+                const quizResult = await quizService.submitAnswer({
+                    channelId: this.activeMeeting.textChannelId,
+                    userId,
+                    user: { id: userId, username, displayName: username },
+                    answerInput: transcript,
+                    isVoice: true,
+                });
+
+                if (quizResult && quizResult.handled) {
+                    if (quizResult.spokenResult) {
+                        await this.speak(quizResult.spokenResult, {
+                            type: quizResult.isCorrect ? 'quiz_correct' : 'quiz_dare',
+                            author: 'Cyber Bot',
+                        });
+                    }
+                    return;
+                }
+            }
+        }
+
+        // 1.6. Check if member is requesting a question / quiz ("Cyber Bot, ask me a question", "quiz me", "கேள்வி கேளுங்க")
+        if (quizService.isQuizRequest(transcript)) {
+            console.log(`[VoiceMeeting] 🧠 Spoken quiz challenge requested by ${username}: "${transcript}"`);
+            const isTamil = aiDoubtService.isTamilText(transcript);
+            const textChannel = this.activeMeeting.textChannelId
+                ? client.channels.cache.get(this.activeMeeting.textChannelId)
+                : null;
+
+            const quizAskResult = await quizService.askQuestion({
+                channel: textChannel,
+                user: { id: userId, username, displayName: username },
+                topic: isTamil ? 'Tamil' : 'Random',
+                lang: isTamil ? 'ta' : 'en',
+                isVoice: true,
+            });
+
+            if (quizAskResult && quizAskResult.spokenQuestion) {
+                await this.speak(quizAskResult.spokenQuestion, {
+                    type: 'quiz_question',
+                    author: 'Cyber Bot',
+                });
+            }
+            return;
+        }
+
+        const botId = client.user ? client.user.id : null;
+        const isBotAddressed = transcriptionResult.isBotMentioned || aiDoubtService.isBotMentioned(transcript, process.env.WAKE_WORD, botId, { client });
+
+        // Intent detection:
+        // 1. Explicitly addressing the bot (e.g. "Cyber Bot, ...", "MeetingBot ...", "Bot ...")
+        // 2. Gemini STT flagged it as a doubt/question
+        // 3. Phrased as a technical doubt/question (what is, explain, how does, can you, etc.)
+        // 4. Tamil question phrasing (ரெக்கர்ஷன் என்றால் என்ன, enna, epdi, doubt, etc.)
+        const questionRegex = /\b(what\s+is|what\s+are|what's|explain|how\s+does|how\s+do|how\s+to|why\s+is|why\s+do|why\s+does|can\s+you|could\s+you|tell\s+me|i\s+have\s+a\s+doubt|my\s+doubt|difference\s+between|define)\b/i;
+        const tamilQuestionRegex = /\b(enna|epdi|eppadi|solli\s*thanga|vilakkunga|oru\s*doubt|doubt)\b|[\u0B80-\u0BFF]/i;
+
+        const isDoubtPhrase = questionRegex.test(transcript) || tamilQuestionRegex.test(transcript) || transcript.includes('?');
+
+        const isQuestion = isBotAddressed || transcriptionResult.isDoubt || (isDoubtPhrase && transcript.split(/\s+/).length >= 2);
+
+        const cleanQuestion = (transcriptionResult.doubtText && transcriptionResult.doubtText.trim().length > 3)
+            ? transcriptionResult.doubtText.trim()
+            : aiDoubtService.cleanDoubtText(transcript, {
+                wakeWord: process.env.WAKE_WORD,
+                botId,
+                client,
+            });
+
+        const transcriptEntry = {
+            id: `tr-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+            timestamp: new Date(),
+            userId,
+            username,
+            text: transcript,
+            isDoubt: isQuestion,
+            type: isQuestion ? 'doubt' : 'speech',
+            botAnswer: null,
+        };
+
+        this.activeMeeting.transcripts.push(transcriptEntry);
+
+        if (isQuestion) {
+            console.log(`[VoiceMeeting] Spoken question detected from ${username}: "${cleanQuestion || transcript}"`);
+            await this.handleDoubtClarification(cleanQuestion || transcript, username, transcriptEntry);
+        } else {
+            console.log(`[VoiceMeeting] Ambient conversation from ${username} (not a doubt): "${transcript}"`);
         }
     }
 
@@ -402,9 +550,11 @@ class VoiceMeetingService {
         if (!this.activeMeeting) return;
 
         try {
-            console.log(`[VoiceMeeting] Solving doubt for ${username}...`);
+            console.log(`[VoiceMeeting] Generating spoken AI answer for ${username}: "${doubtQuestion}"...`);
             const answerResult = await aiDoubtService.solveDoubt(doubtQuestion);
-            const answer = answerResult.spokenAnswer;
+            const answer = answerResult.spokenAnswer || answerResult.answer;
+
+            console.log(`[VoiceMeeting] Answer generated (${answer.length} chars). Speaking aloud in voice...`);
 
             if (transcriptEntry) {
                 transcriptEntry.botAnswer = answer;
@@ -428,11 +578,11 @@ class VoiceMeetingService {
                     const embed = new EmbedBuilder()
                         .setTitle('💡 Doubt Clarified / சந்தேகம் தெளிவுபடுத்தப்பட்டது')
                         .addFields(
-                            { name: `Question by ${username}`, value: doubtQuestion },
-                            { name: 'Explanation', value: answer }
+                            { name: `Question by ${username}`, value: doubtQuestion.substring(0, 1024) },
+                            { name: 'Explanation', value: answer.substring(0, 1024) }
                         )
                         .setColor(0x10b981)
-                        .setFooter({ text: `Language: ${answerResult.isTamil ? 'Tamil (தமிழ்)' : 'English'} • Source: ${answerResult.provider}` })
+                        .setFooter({ text: `Language: ${answerResult.isTamil ? 'Tamil (தமிழ்)' : 'English'} • Source: ${answerResult.provider} • 🔊 Speaking in voice meeting` })
                         .setTimestamp();
                     textChannel.send({ embeds: [embed] }).catch(() => {});
                 }
@@ -468,7 +618,8 @@ class VoiceMeetingService {
         if (!this.activeMeeting) return;
 
         try {
-            const voice = this.activeMeeting.ttsVoice || process.env.TTS_VOICE || 'en-US-ChristopherNeural';
+            const voice = meta.voice || this.activeMeeting.ttsVoice || process.env.TTS_VOICE || 'en-US-ChristopherNeural';
+            console.log(`[VoiceMeeting] Synthesizing speech (${text.length} chars) with voice: ${voice}...`);
             const { filePath } = await speechService.synthesizeSpeechToFile(text, { voice });
 
             this.audioQueue.push({
@@ -495,13 +646,28 @@ class VoiceMeetingService {
             this.isPlayingAudio = true;
             this.activeMeeting.isBotSpeaking = true;
 
+            console.log(`[VoiceMeeting] Playing audio: "${item.text.substring(0, 60)}..."`);
             const resource = createAudioResource(item.filePath);
             this.activeMeeting.player.play(resource);
 
             // Clean up file when done
+            let cleaned = false;
             const checkDone = () => {
+                if (cleaned) return;
+                cleaned = true;
+                clearTimeout(watchdog);
                 speechService.cleanupTempAudio(item.filePath);
             };
+
+            const watchdog = setTimeout(() => {
+                console.warn('[VoiceMeeting] Audio playback watchdog triggered, resetting state.');
+                if (this.activeMeeting) {
+                    this.activeMeeting.isBotSpeaking = false;
+                }
+                this.isPlayingAudio = false;
+                checkDone();
+                this.processAudioQueue();
+            }, 60000);
 
             this.activeMeeting.player.once(AudioPlayerStatus.Idle, checkDone);
         } catch (err) {

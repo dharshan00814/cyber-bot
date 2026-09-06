@@ -37,6 +37,11 @@ module.exports = {
             subcommand
                 .setName('status')
                 .setDescription('Check active voice meeting status, participants, and duration')
+        )
+        .addSubcommand(subcommand =>
+            subcommand
+                .setName('stop')
+                .setDescription('Immediately stop the bot from speaking in the voice meeting')
         ),
 
     async execute(interaction) {
@@ -167,6 +172,15 @@ module.exports = {
                     .setTimestamp();
 
                 return interaction.editReply({ embeds: [embed] });
+            }
+
+            if (subcommand === 'stop') {
+                if (!voiceMeetingService.isActive()) {
+                    return interaction.editReply({ content: 'ℹ️ No voice meeting is currently running.' });
+                }
+
+                voiceMeetingService.stopSpeaking();
+                return interaction.editReply({ content: '⏹️ Stopped speaking immediately.' });
             }
         } catch (err) {
             console.error('[Command: meeting] Error:', err);
