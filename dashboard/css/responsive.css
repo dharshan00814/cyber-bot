@@ -133,6 +133,48 @@
     .bot-status-indicator {
         font-size: 11px;
         padding: 4px 8px;
+        white-space: nowrap;
+    }
+}
+
+@media (max-width: 600px) {
+    .top-bar {
+        padding: 0 12px;
+        height: 56px;
+    }
+
+    .top-bar-left .page-title {
+        font-size: 16px;
+        max-width: 120px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .top-bar-right {
+        gap: 6px;
+        flex-shrink: 0;
+    }
+
+    #push-notification-btn,
+    .push-notification-btn {
+        padding: 6px 9px !important;
+        font-size: 13px !important;
+        min-width: 34px !important;
+        height: 32px !important;
+        justify-content: center !important;
+        border-radius: 8px !important;
+        white-space: nowrap !important;
+    }
+
+    .push-btn-text {
+        display: none !important;
+    }
+
+    .push-btn-icon {
+        font-size: 15px !important;
+        margin: 0 !important;
+        line-height: 1 !important;
     }
 }
 

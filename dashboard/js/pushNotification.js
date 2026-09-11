@@ -97,22 +97,22 @@ const pushNotification = {
         btn.dataset.pushState = state;
 
         if (state === 'enabled') {
-            btn.innerHTML = '<span>✓</span> <span>Notifications Enabled</span>';
+            btn.innerHTML = '<span class="push-btn-icon">✓</span><span class="push-btn-text">Notifications Enabled</span>';
             btn.className = 'btn btn-secondary btn-sm push-notification-btn state-enabled';
             btn.title = 'Push notifications are active on this device.';
             btn.disabled = true;
             btn.style.opacity = '0.85';
             btn.style.cursor = 'default';
         } else if (state === 'denied') {
-            btn.innerHTML = '<span>🚫</span> <span>Notifications Blocked</span>';
+            btn.innerHTML = '<span class="push-btn-icon">🚫</span><span class="push-btn-text">Notifications Blocked</span>';
             btn.className = 'btn btn-secondary btn-sm push-notification-btn state-blocked';
             btn.title = 'Notifications are blocked. Please enable them in your browser settings.';
             btn.disabled = false;
         } else if (state === 'subscribing') {
-            btn.innerHTML = '<span class="loading-spinner" style="width:14px;height:14px;margin:0 4px 0 0;"></span> <span>Enabling...</span>';
+            btn.innerHTML = '<span class="loading-spinner push-btn-icon" style="width:14px;height:14px;display:inline-block;"></span><span class="push-btn-text">Enabling...</span>';
             btn.disabled = true;
         } else {
-            btn.innerHTML = '<span>🔔</span> <span>Enable Notifications</span>';
+            btn.innerHTML = '<span class="push-btn-icon">🔔</span><span class="push-btn-text">Enable Notifications</span>';
             btn.className = 'btn btn-primary btn-sm push-notification-btn state-prompt';
             btn.title = 'Receive instant alerts on this device when events are created.';
             btn.disabled = false;

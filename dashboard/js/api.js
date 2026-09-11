@@ -1,14 +1,42 @@
 const API_BASE = window.location.protocol === 'file:' ? 'http://localhost:3000' : window.location.origin;
 
 const api = {
+    getToken() {
+        try {
+            return localStorage.getItem('cyberbot_admin_token');
+        } catch {
+            return null;
+        }
+    },
+
+    setToken(token) {
+        try {
+            if (token) {
+                localStorage.setItem('cyberbot_admin_token', token);
+            } else {
+                localStorage.removeItem('cyberbot_admin_token');
+            }
+        } catch (e) {
+            console.warn('LocalStorage error:', e);
+        }
+    },
+
     async request(endpoint, options = {}) {
         const url = `${API_BASE}/api${endpoint}`;
+        const headers = {
+            'Content-Type': 'application/json',
+            ...options.headers,
+        };
+
+        const token = this.getToken();
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+            headers['x-admin-token'] = token;
+        }
+
         const config = {
             credentials: 'include',
-            headers: {
-                'Content-Type': 'application/json',
-                ...options.headers,
-            },
+            headers,
             ...options,
         };
 
@@ -29,6 +57,13 @@ const api = {
             }
 
             if (!response.ok) {
+                // If unauthorized on a protected endpoint, clear invalid token and switch to login
+                if (response.status === 401 && !endpoint.includes('/auth/login') && !endpoint.includes('/auth/check')) {
+                    this.setToken(null);
+                    if (typeof app !== 'undefined' && typeof app.showLogin === 'function') {
+                        app.showLogin();
+                    }
+                }
                 throw new Error(data.error || `HTTP ${response.status}`);
             }
 
@@ -73,11 +108,21 @@ const api = {
     },
 
     async login(password) {
-        return this.post('/auth/login', { password });
+        const response = await this.post('/auth/login', { password });
+        if (response && response.token) {
+            this.setToken(response.token);
+        }
+        return response;
     },
 
     async logout() {
-        return this.post('/auth/logout');
+        try {
+            await this.post('/auth/logout');
+        } catch (e) {
+            console.warn('Logout API notice:', e);
+        } finally {
+            this.setToken(null);
+        }
     },
 };
 

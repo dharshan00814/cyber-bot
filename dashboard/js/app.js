@@ -2,12 +2,35 @@ const app = {
     currentPage: 'dashboard',
     isSidebarOpen: false,
     pollInterval: null,
+    isInitialized: false,
+
+    showLogin() {
+        const loginScreen = document.getElementById('login-screen');
+        const dashboardScreen = document.getElementById('dashboard-screen');
+        if (dashboardScreen) dashboardScreen.style.display = 'none';
+        if (loginScreen) loginScreen.style.display = 'flex';
+        if (this.pollInterval) {
+            clearInterval(this.pollInterval);
+            this.pollInterval = null;
+        }
+    },
+
+    showDashboard() {
+        const loginScreen = document.getElementById('login-screen');
+        const dashboardScreen = document.getElementById('dashboard-screen');
+        if (loginScreen) loginScreen.style.display = 'none';
+        if (dashboardScreen) dashboardScreen.style.display = 'block';
+    },
 
     async init() {
-        this.bindNavigation();
-        this.bindSidebar();
-        this.bindModals();
-        this.bindLogout();
+        this.showDashboard();
+        if (!this.isInitialized) {
+            this.bindNavigation();
+            this.bindSidebar();
+            this.bindModals();
+            this.bindLogout();
+            this.isInitialized = true;
+        }
         this.startStatusPolling();
         this.navigateTo(this.currentPage);
     },
@@ -23,8 +46,6 @@ const app = {
         try {
             const authenticated = await api.checkAuth();
             if (authenticated) {
-                loginScreen.style.display = 'none';
-                dashboardScreen.style.display = 'block';
                 await this.init();
                 return;
             }
@@ -32,8 +53,7 @@ const app = {
             console.warn('Auth check error:', e);
         }
 
-        loginScreen.style.display = 'flex';
-        dashboardScreen.style.display = 'none';
+        this.showLogin();
 
         if (loginForm && !loginForm.dataset.bound) {
             loginForm.dataset.bound = 'true';
@@ -51,8 +71,6 @@ const app = {
 
                 try {
                     await api.login(password);
-                    loginScreen.style.display = 'none';
-                    dashboardScreen.style.display = 'block';
                     await this.init();
                 } catch (error) {
                     if (loginError) {
@@ -80,11 +98,7 @@ const app = {
                 } catch (err) {
                     console.error('Logout error:', err);
                 }
-                if (this.pollInterval) clearInterval(this.pollInterval);
-                const loginScreen = document.getElementById('login-screen');
-                const dashboardScreen = document.getElementById('dashboard-screen');
-                if (dashboardScreen) dashboardScreen.style.display = 'none';
-                if (loginScreen) loginScreen.style.display = 'flex';
+                this.showLogin();
                 const passwordInput = document.getElementById('login-password');
                 if (passwordInput) passwordInput.value = '';
             });

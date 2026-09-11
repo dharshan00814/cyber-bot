@@ -10,27 +10,77 @@ const dashboardRoutes = require('./routes/dashboard');
 
 const app = express();
 
+app.set('trust proxy', 1);
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'dashboard')));
 
+const crypto = require('crypto');
+
+function getAuthSecret() {
+    return process.env.SESSION_SECRET || process.env.DASHBOARD_PASSWORD || 'cyber-bot-dashboard-secret-change-in-production';
+}
+
+function generateAdminToken() {
+    const secret = getAuthSecret();
+    const payload = JSON.stringify({ role: 'admin', ts: Date.now() });
+    const payloadBase64 = Buffer.from(payload).toString('base64url');
+    const signature = crypto.createHmac('sha256', secret).update(payloadBase64).digest('base64url');
+    return `${payloadBase64}.${signature}`;
+}
+
+function verifyAdminToken(token) {
+    if (!token || typeof token !== 'string') return false;
+    const parts = token.split('.');
+    if (parts.length !== 2) return false;
+    const [payloadBase64, signature] = parts;
+    const secret = getAuthSecret();
+    const expectedSignature = crypto.createHmac('sha256', secret).update(payloadBase64).digest('base64url');
+    if (signature !== expectedSignature) return false;
+    try {
+        const payload = JSON.parse(Buffer.from(payloadBase64, 'base64url').toString('utf8'));
+        const maxAge = 14 * 24 * 60 * 60 * 1000; // 14 days
+        if (Date.now() - payload.ts > maxAge) return false;
+        return payload.role === 'admin';
+    } catch {
+        return false;
+    }
+}
+
 app.use(
     session({
-        secret: process.env.SESSION_SECRET || 'cyber-bot-dashboard-secret-change-in-production',
+        secret: getAuthSecret(),
         resave: false,
         saveUninitialized: false,
         cookie: {
             secure: process.env.NODE_ENV === 'production',
             httpOnly: true,
+            sameSite: 'lax',
             maxAge: 24 * 60 * 60 * 1000,
         },
     })
 );
 
 function requireAuth(req, res, next) {
+    // 1. Check session
     if (req.session && req.session.isAdmin) {
         return next();
     }
+
+    // 2. Check Bearer token or x-admin-token (Works 100% on Vercel Serverless & mobile)
+    const authHeader = req.headers['authorization'] || req.headers['x-admin-token'] || req.headers['x-dashboard-auth'];
+    if (authHeader) {
+        const token = authHeader.replace(/^Bearer\s+/i, '').trim();
+        const adminPassword = process.env.DASHBOARD_PASSWORD || 'admin123';
+        if (token === adminPassword || verifyAdminToken(token)) {
+            if (req.session) {
+                req.session.isAdmin = true;
+            }
+            return next();
+        }
+    }
+
     return res.status(401).json({ error: 'Unauthorized' });
 }
 
@@ -59,9 +109,19 @@ app.post('/api/dashboard/push/subscribe', async (req, res) => {
 
 app.use('/api/dashboard', requireAuth, dashboardRoutes);
 
-
 app.get('/api/auth/check', (req, res) => {
-    res.json({ authenticated: !!(req.session && req.session.isAdmin) });
+    if (req.session && req.session.isAdmin) {
+        return res.json({ authenticated: true });
+    }
+    const authHeader = req.headers['authorization'] || req.headers['x-admin-token'] || req.headers['x-dashboard-auth'];
+    if (authHeader) {
+        const token = authHeader.replace(/^Bearer\s+/i, '').trim();
+        const adminPassword = process.env.DASHBOARD_PASSWORD || 'admin123';
+        if (token === adminPassword || verifyAdminToken(token)) {
+            return res.json({ authenticated: true });
+        }
+    }
+    res.json({ authenticated: false });
 });
 
 app.post('/api/auth/login', (req, res) => {
@@ -69,13 +129,18 @@ app.post('/api/auth/login', (req, res) => {
     const adminPassword = process.env.DASHBOARD_PASSWORD || 'admin123';
 
     if (password === adminPassword) {
-        req.session.isAdmin = true;
-        req.session.loginTime = new Date();
-        return res.json({ success: true, message: 'Login successful' });
+        if (req.session) {
+            req.session.isAdmin = true;
+            req.session.loginTime = new Date();
+        }
+        const token = generateAdminToken();
+        return res.json({ success: true, token, message: 'Login successful' });
     }
 
     return res.status(401).json({ error: 'Invalid password' });
 });
+
+
 
 app.post('/api/auth/logout', (req, res) => {
     req.session.destroy(err => {
@@ -92,64 +157,69 @@ app.get('/health', (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-
-app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Server running on port ${PORT}`);
-    console.log(`Dashboard available at: http://localhost:${PORT}`);
-});
+const isVercel = Boolean(process.env.VERCEL);
 
 connectDB();
 
-const foldersPath = path.join(__dirname, 'commands');
-if (fs.existsSync(foldersPath)) {
-    const commandFolders = fs.readdirSync(foldersPath);
-    for (const folder of commandFolders) {
-        const commandsPath = path.join(foldersPath, folder);
-        const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
-        for (const file of commandFiles) {
-            const filePath = path.join(commandsPath, file);
-            const command = require(filePath);
-            if ('data' in command && 'execute' in command) {
-                client.commands.set(command.data.name, command);
-            } else {
-                console.log(`[WARNING] The command at ${filePath} is missing a required "data" or "execute" property.`);
+if (!isVercel) {
+    app.listen(PORT, '0.0.0.0', () => {
+        console.log(`Server running on port ${PORT}`);
+        console.log(`Dashboard available at: http://localhost:${PORT}`);
+    });
+
+    const foldersPath = path.join(__dirname, 'commands');
+    if (fs.existsSync(foldersPath)) {
+        const commandFolders = fs.readdirSync(foldersPath);
+        for (const folder of commandFolders) {
+            const commandsPath = path.join(foldersPath, folder);
+            const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
+            for (const file of commandFiles) {
+                const filePath = path.join(commandsPath, file);
+                const command = require(filePath);
+                if ('data' in command && 'execute' in command) {
+                    client.commands.set(command.data.name, command);
+                } else {
+                    console.log(`[WARNING] The command at ${filePath} is missing a required "data" or "execute" property.`);
+                }
             }
         }
     }
-}
 
-const eventsPath = path.join(__dirname, 'events');
-if (fs.existsSync(eventsPath)) {
-    const eventFiles = fs.readdirSync(eventsPath).filter(file => file.endsWith('.js'));
-    for (const file of eventFiles) {
-        const filePath = path.join(eventsPath, file);
-        const event = require(filePath);
-        if (event.once) {
-            client.once(event.name, (...args) => event.execute(...args, client));
-        } else {
-            client.on(event.name, (...args) => event.execute(...args, client));
+    const eventsPath = path.join(__dirname, 'events');
+    if (fs.existsSync(eventsPath)) {
+        const eventFiles = fs.readdirSync(eventsPath).filter(file => file.endsWith('.js'));
+        for (const file of eventFiles) {
+            const filePath = path.join(eventsPath, file);
+            const event = require(filePath);
+            if (event.once) {
+                client.once(event.name, (...args) => event.execute(...args, client));
+            } else {
+                client.on(event.name, (...args) => event.execute(...args, client));
+            }
         }
     }
+
+    const whatsAppService = require('./services/whatsapp');
+    startScheduler(client);
+
+    // Initialize WhatsApp connection in background
+    whatsAppService.init(true).catch(err => {
+        console.warn('[WhatsApp] Startup initialization note:', err.message);
+    });
+
+    client.on('error', error => {
+        console.error('Client error:', error);
+    });
+
+    process.on('unhandledRejection', error => {
+        console.error('Unhandled rejection:', error);
+    });
+
+    if (process.env.DISCORD_TOKEN) {
+        client.login(process.env.DISCORD_TOKEN).catch(err => {
+            console.warn('[Discord] Bot login note:', err.message);
+        });
+    }
 }
-
-const whatsAppService = require('./services/whatsapp');
-
-startScheduler(client);
-
-
-// Initialize WhatsApp connection in background
-whatsAppService.init(true).catch(err => {
-    console.warn('[WhatsApp] Startup initialization note:', err.message);
-});
-
-client.on('error', error => {
-    console.error('Client error:', error);
-});
-
-process.on('unhandledRejection', error => {
-    console.error('Unhandled rejection:', error);
-});
-
-client.login(process.env.DISCORD_TOKEN);
 
 module.exports = app;

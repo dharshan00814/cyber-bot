@@ -49,11 +49,11 @@ router.get('/overview', async (req, res) => {
         const pendingReminders = announcements.filter(a => a.status === 'scheduled').length;
 
         const botStatus = {
-            online: client.isReady(),
+            online: typeof client.isReady === 'function' ? client.isReady() : false,
             user: client.user ? client.user.tag : null,
-            guilds: client.guilds.cache.size,
+            guilds: client.guilds?.cache ? client.guilds.cache.size : 0,
             uptime: client.uptime || null,
-            ping: client.ws.ping,
+            ping: client.ws?.ping ?? -1,
         };
 
         const recentActivity = [];
@@ -903,11 +903,11 @@ router.get('/system/status', async (req, res) => {
 
         res.json({
             bot: {
-                online: client.isReady(),
+                online: typeof client.isReady === 'function' ? client.isReady() : false,
                 user: client.user ? client.user.tag : null,
-                uptime: client.uptime,
-                ping: client.ws.ping,
-                guilds: client.guilds.cache.size,
+                uptime: client.uptime || null,
+                ping: client.ws?.ping ?? -1,
+                guilds: client.guilds?.cache ? client.guilds.cache.size : 0,
             },
             supabase: supabaseStatus,
             youtube: youtubeStatus,
