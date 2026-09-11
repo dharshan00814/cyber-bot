@@ -191,13 +191,36 @@ const pushNotification = {
 
             const convertedVapidKey = this.urlBase64ToUint8Array(this.vapidPublicKey);
 
-            // 4. Subscribe via Push API
+            // 4. Subscribe via Push API (clean up stale subscription first to prevent push service error)
             let subscription = await registration.pushManager.getSubscription();
-            if (!subscription) {
+            if (subscription) {
+                try {
+                    await subscription.unsubscribe();
+                } catch (unsubErr) {
+                    console.warn('[Web Push] Cleaning old subscription:', unsubErr.message);
+                }
+                subscription = null;
+            }
+
+            try {
                 subscription = await registration.pushManager.subscribe({
                     userVisibleOnly: true,
                     applicationServerKey: convertedVapidKey,
                 });
+            } catch (firstErr) {
+                console.warn('[Web Push] First subscribe attempt failed, retrying with ArrayBuffer:', firstErr.message);
+                try {
+                    subscription = await registration.pushManager.subscribe({
+                        userVisibleOnly: true,
+                        applicationServerKey: convertedVapidKey.buffer,
+                    });
+                } catch (secondErr) {
+                    console.warn('[Web Push] Second attempt failed, retrying with base64 string:', secondErr.message);
+                    subscription = await registration.pushManager.subscribe({
+                        userVisibleOnly: true,
+                        applicationServerKey: this.vapidPublicKey,
+                    });
+                }
             }
 
             const subJson = subscription.toJSON();

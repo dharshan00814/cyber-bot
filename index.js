@@ -23,6 +23,13 @@ app.get('/sw.js', (req, res) => {
     res.sendFile(path.join(__dirname, 'dashboard', 'sw.js'));
 });
 
+// Ensure /manifest.json is served with application/manifest+json
+app.get('/manifest.json', (req, res) => {
+    res.setHeader('Content-Type', 'application/manifest+json');
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.sendFile(path.join(__dirname, 'dashboard', 'manifest.json'));
+});
+
 app.use(express.static(path.join(__dirname, 'dashboard')));
 
 const crypto = require('crypto');
