@@ -163,8 +163,32 @@ const pushNotification = {
                 throw new Error('VAPID public key is empty or not configured');
             }
 
-            // 3. Ensure Service Worker ready
-            const registration = await navigator.serviceWorker.ready;
+            // 3. Ensure Service Worker ready with safety timeout
+            let registration = this.registration;
+            if (!registration) {
+                try {
+                    registration = await navigator.serviceWorker.register('/sw.js', { scope: '/' });
+                    this.registration = registration;
+                } catch (regErr) {
+                    console.warn('[Web Push] Retry register failed:', regErr);
+                }
+            }
+
+            try {
+                registration = await Promise.race([
+                    navigator.serviceWorker.ready,
+                    new Promise((_, reject) =>
+                        setTimeout(() => reject(new Error('Service Worker took too long to activate. Please ensure sw.js is deployed.')), 7000)
+                    )
+                ]);
+                this.registration = registration;
+            } catch (readyErr) {
+                console.warn('[Web Push] SW ready timeout, using registration directly:', readyErr.message);
+                if (!registration) {
+                    throw readyErr;
+                }
+            }
+
             const convertedVapidKey = this.urlBase64ToUint8Array(this.vapidPublicKey);
 
             // 4. Subscribe via Push API

@@ -29,6 +29,45 @@ function buildResponse(success, data, error, statusCode = 200) {
     return statusCode === 200 ? response : { ...response, status: statusCode };
 }
 
+async function getBotStatusInfo() {
+    if (typeof client.isReady === 'function' && client.isReady()) {
+        return {
+            online: true,
+            user: client.user ? client.user.tag : 'Cyber Bot',
+            guilds: client.guilds?.cache ? client.guilds.cache.size : 0,
+            uptime: client.uptime || null,
+            ping: client.ws?.ping ?? -1,
+        };
+    }
+
+    try {
+        const setting = await Setting.findOne({ key: 'discord_bot_heartbeat' });
+        if (setting && setting.value) {
+            const data = typeof setting.value === 'string' ? JSON.parse(setting.value) : setting.value;
+            const isAlive = (Date.now() - (data.lastSeen || 0)) < 60000;
+            if (isAlive) {
+                return {
+                    online: true,
+                    user: data.user || 'Cyber Bot',
+                    guilds: data.guilds ?? 0,
+                    uptime: data.uptime || null,
+                    ping: data.ping ?? 0,
+                };
+            }
+        }
+    } catch (err) {
+        // Fallback
+    }
+
+    return {
+        online: false,
+        user: 'Cyber Bot',
+        guilds: 0,
+        uptime: null,
+        ping: 0,
+    };
+}
+
 router.get('/overview', async (req, res) => {
     try {
         const members = await Member.find().exec();
@@ -48,13 +87,7 @@ router.get('/overview', async (req, res) => {
         const scheduledTasks = jobs.filter(j => j.enabled).length;
         const pendingReminders = announcements.filter(a => a.status === 'scheduled').length;
 
-        const botStatus = {
-            online: typeof client.isReady === 'function' ? client.isReady() : false,
-            user: client.user ? client.user.tag : null,
-            guilds: client.guilds?.cache ? client.guilds.cache.size : 0,
-            uptime: client.uptime || null,
-            ping: client.ws?.ping ?? -1,
-        };
+        const botStatus = await getBotStatusInfo();
 
         const recentActivity = [];
         const sortedProgress = [...progress].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 5);
@@ -902,13 +935,7 @@ router.get('/system/status', async (req, res) => {
         const waStatus = whatsAppService.getStatus();
 
         res.json({
-            bot: {
-                online: typeof client.isReady === 'function' ? client.isReady() : false,
-                user: client.user ? client.user.tag : null,
-                uptime: client.uptime || null,
-                ping: client.ws?.ping ?? -1,
-                guilds: client.guilds?.cache ? client.guilds.cache.size : 0,
-            },
+            bot: await getBotStatusInfo(),
             supabase: supabaseStatus,
             youtube: youtubeStatus,
             whatsapp: waStatus.status,

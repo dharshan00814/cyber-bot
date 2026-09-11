@@ -67,8 +67,8 @@ const pageDashboard = {
             <div style="display: flex; flex-direction: column; gap: 14px;">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <span style="color: var(--text-secondary); font-size: 14px;">Status</span>
-                    <span class="badge ${isOnline ? 'badge-success' : 'badge-warning'}">
-                        ${isOnline ? '🟢 Connected' : '🟡 Connecting / Standby'}
+                    <span class="badge ${isOnline ? 'badge-success' : 'badge-danger'}">
+                        ${isOnline ? '🟢 Connected' : '🔴 Offline (Standby)'}
                     </span>
                 </div>
                 <div style="display: flex; justify-content: space-between; align-items: center;">

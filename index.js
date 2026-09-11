@@ -14,6 +14,15 @@ app.set('trust proxy', 1);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Ensure /sw.js is always served with application/javascript and Service-Worker-Allowed header
+app.get('/sw.js', (req, res) => {
+    res.setHeader('Content-Type', 'application/javascript');
+    res.setHeader('Service-Worker-Allowed', '/');
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.sendFile(path.join(__dirname, 'dashboard', 'sw.js'));
+});
+
 app.use(express.static(path.join(__dirname, 'dashboard')));
 
 const crypto = require('crypto');
@@ -207,8 +216,43 @@ if (!isVercel) {
         console.warn('[WhatsApp] Startup initialization note:', err.message);
     });
 
+    async function updateBotHeartbeat() {
+        if (!client || !client.isReady()) return;
+        try {
+            const Setting = require('./models/Settings');
+            const statusData = {
+                online: true,
+                user: client.user ? client.user.tag : 'Cyber Bot',
+                guilds: client.guilds?.cache?.size || 0,
+                ping: client.ws?.ping ?? 0,
+                uptime: client.uptime || 0,
+                lastSeen: Date.now(),
+            };
+            let setting = await Setting.findOne({ key: 'discord_bot_heartbeat' });
+            if (!setting) {
+                setting = new Setting({
+                    key: 'discord_bot_heartbeat',
+                    value: JSON.stringify(statusData),
+                    category: 'bot',
+                });
+            } else {
+                setting.value = JSON.stringify(statusData);
+                setting.updatedAt = new Date();
+            }
+            await setting.save();
+        } catch (err) {
+            // Heartbeat update non-blocking
+        }
+    }
+
     client.on('error', error => {
         console.error('Client error:', error);
+    });
+
+    client.once('ready', () => {
+        console.log(`[Discord] Bot connected and ready as ${client.user?.tag}`);
+        updateBotHeartbeat();
+        setInterval(updateBotHeartbeat, 25000);
     });
 
     process.on('unhandledRejection', error => {

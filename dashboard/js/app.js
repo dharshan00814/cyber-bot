@@ -276,8 +276,8 @@ const app = {
                     dot.style.background = 'var(--green)';
                     text.textContent = `Online (${data.bot.ping ?? 0}ms)`;
                 } else {
-                    dot.style.background = 'var(--yellow)';
-                    text.textContent = 'Connecting...';
+                    dot.style.background = 'var(--red)';
+                    text.textContent = 'Offline';
                 }
             }
         } catch (e) {
