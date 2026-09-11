@@ -10,7 +10,8 @@ const Announcement = require('../models/Announcement');
 const Playlist = require('../models/Playlist');
 const Setting = require('../models/Settings');
 const { getJobs, getJob, updateJob, runJobNow } = require('../utils/schedulerRegistry');
-const { getSupabaseClient } = require('../utils/supabaseStore');
+const { getSupabaseClient, getLocalTableRows, syncToLocalStore } = require('../utils/supabaseStore');
+const { triggerEventNotification } = require('../utils/notificationService');
 const whatsAppService = require('../services/whatsapp');
 const voiceMeetingService = require('../services/voiceMeetingService');
 const speechService = require('../services/speechService');
@@ -542,7 +543,23 @@ router.post('/announcements', async (req, res) => {
         });
         await announcement.save();
 
-        res.status(201).json({ announcement, message: 'Announcement created successfully' });
+        let notificationResult = null;
+        if (announcement.enableNotification) {
+            try {
+                notificationResult = await triggerEventNotification({
+                    eventId: announcement._id,
+                    title: announcement.title,
+                    date: announcement.scheduledAt ? new Date(announcement.scheduledAt).toLocaleDateString() : 'Today',
+                    time: announcement.scheduledAt ? new Date(announcement.scheduledAt).toLocaleTimeString() : 'Immediate',
+                    description: announcement.message,
+                    url: `/announcements`,
+                });
+            } catch (notifyErr) {
+                console.warn('[Announcements] Web push trigger warning:', notifyErr.message);
+            }
+        }
+
+        res.status(201).json({ announcement, notification: notificationResult, message: 'Announcement created successfully' });
     } catch (error) {
         console.error('Error creating announcement:', error);
         res.status(500).json({ error: 'Failed to create announcement' });
@@ -618,6 +635,121 @@ router.post('/announcements/:id/send', async (req, res) => {
     } catch (error) {
         console.error('Error sending announcement:', error);
         res.status(500).json({ error: 'Failed to send announcement' });
+    }
+});
+
+// ==========================================
+// Community Events & Web Push Workflow
+// ==========================================
+
+function parseEventDate(dateStr, timeStr) {
+    if (!dateStr) return new Date().toISOString();
+    let candidate = timeStr ? `${dateStr} ${timeStr}` : dateStr;
+    let d = new Date(candidate);
+    if (isNaN(d.getTime())) {
+        const currentYear = new Date().getFullYear();
+        candidate = timeStr ? `${dateStr}, ${currentYear} ${timeStr}` : `${dateStr}, ${currentYear}`;
+        d = new Date(candidate);
+    }
+    return !isNaN(d.getTime()) ? d.toISOString() : new Date().toISOString();
+}
+
+router.get('/events', async (req, res) => {
+    try {
+        const supabase = getSupabaseClient();
+        if (supabase) {
+            const { data, error } = await supabase
+                .from('events')
+                .select('*')
+                .order('created_at', { ascending: false });
+
+            if (!error && data) {
+                return res.json({ events: data });
+            }
+        }
+
+        const events = getLocalTableRows('events');
+        res.json({ events });
+    } catch (error) {
+        console.error('Error fetching events:', error);
+        res.status(500).json({ error: 'Failed to load events' });
+    }
+});
+
+router.post('/events', async (req, res) => {
+    try {
+        const { title, date, time, description, location } = req.body;
+        if (!title || !date || !time) {
+            return res.status(400).json({ error: 'Title, date, and time are required' });
+        }
+
+        const parsedEventDate = parseEventDate(date, time);
+        let createdEvent = null;
+        const supabase = getSupabaseClient();
+
+        // STEP 6: Insert into database first matching live Supabase schema
+        if (supabase) {
+            const eventPayload = {
+                title,
+                description: description || '',
+                event_date: parsedEventDate,
+            };
+
+            const { data: event, error: insertError } = await supabase
+                .from('events')
+                .insert(eventPayload)
+                .select()
+                .single();
+
+            if (insertError) {
+                console.error('[Events] Supabase insert error:', insertError);
+                return res.status(500).json({ error: `Database error: ${insertError.message || 'Failed to insert event'}` });
+            }
+            createdEvent = {
+                ...event,
+                date: date,
+                time: time,
+                location: location || 'Discord Community Server',
+            };
+        } else {
+            // Local store fallback
+            const localEvent = {
+                id: `ev-${Date.now()}`,
+                title,
+                date,
+                time,
+                description: description || '',
+                location: location || 'Discord Community Server',
+                event_date: parsedEventDate,
+                created_at: new Date().toISOString(),
+            };
+            const rows = getLocalTableRows('events');
+            rows.unshift(localEvent);
+            syncToLocalStore('events', rows);
+            createdEvent = localEvent;
+        }
+
+        // STEP 6: Confirm event was created successfully BEFORE triggering notification
+        console.log(`[Events] Event created successfully (ID: ${createdEvent.id}). Triggering Web Push notification...`);
+
+        const notificationResult = await triggerEventNotification({
+            eventId: createdEvent.id,
+            title: createdEvent.title,
+            date: date,
+            time: time,
+            description: createdEvent.description,
+            url: `/events/${createdEvent.id}`,
+        });
+
+        res.status(201).json({
+            success: true,
+            event: createdEvent,
+            notification: notificationResult,
+            message: 'Event created and Web Push notifications dispatched successfully',
+        });
+    } catch (error) {
+        console.error('Error creating event:', error);
+        res.status(500).json({ error: 'Failed to create event' });
     }
 });
 

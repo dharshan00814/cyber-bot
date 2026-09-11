@@ -117,7 +117,10 @@
                     <button class="menu-toggle" id="menu-toggle">☰</button>
                     <h2 class="page-title">Dashboard</h2>
                 </div>
-                <div class="top-bar-right">
+                <div class="top-bar-right" style="display: flex; align-items: center; gap: 12px;">
+                    <button id="push-notification-btn" class="btn btn-primary btn-sm push-notification-btn" style="display: inline-flex; align-items: center; gap: 6px; font-weight: 500;">
+                        <span>🔔</span> <span>Enable Notifications</span>
+                    </button>
                     <div class="bot-status-indicator" id="bot-status">
                         <span class="status-dot" id="status-dot"></span>
                         <span id="status-text">Loading...</span>
@@ -151,9 +154,10 @@
                             <h3 class="card-title">Quick Actions</h3>
                         </div>
                         <div class="card-body" style="display: flex; flex-wrap: wrap; gap: 10px;">
-                            <button class="btn btn-primary" onclick="app.navigateTo('members')">👥 Add Member</button>
+                            <button class="btn btn-primary" onclick="app.showModal('modal-event')">📅 Create Event (Web Push)</button>
+                            <button class="btn btn-secondary" onclick="app.navigateTo('members')">👥 Add Member</button>
                             <button class="btn btn-secondary" onclick="app.navigateTo('progress')">📈 Add Progress</button>
-                            <button class="btn btn-secondary" onclick="app.showModal('modal-meeting')">📅 Create Meeting</button>
+                            <button class="btn btn-secondary" onclick="app.showModal('modal-meeting')">🎙️ Create Meeting</button>
                             <button class="btn btn-secondary" onclick="app.navigateTo('announcements')">📢 Send Announcement</button>
                             <button class="btn btn-secondary" onclick="app.navigateTo('whatsapp')">📱 WhatsApp Reminder</button>
                             <button class="btn btn-secondary" onclick="app.navigateTo('scheduler')">⏰ Schedule Reminder</button>
@@ -788,6 +792,49 @@
         </div>
     </div>
 
+    <!-- Event Creation Modal (Native Web Push Trigger) -->
+    <div class="modal-overlay" id="modal-event">
+        <div class="modal" style="max-width: 550px;">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modal-event-title">Create Community Event</h3>
+                <button class="modal-close" onclick="app.hideModal('modal-event')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="event-form" onsubmit="event.preventDefault(); window.createCommunityEvent();">
+                    <div class="form-group">
+                        <label class="form-label">Event Title</label>
+                        <input type="text" class="form-input" id="event-title" placeholder="e.g. Weekly Bash" required>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                        <div class="form-group">
+                            <label class="form-label">Date</label>
+                            <input type="text" class="form-input" id="event-date" placeholder="e.g. Saturday, 12 September" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Time</label>
+                            <input type="text" class="form-input" id="event-time" placeholder="e.g. 7:00 PM" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Location / Platform</label>
+                        <input type="text" class="form-input" id="event-location" placeholder="e.g. Discord Voice #General" value="Discord Community Server">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Description</label>
+                        <textarea class="form-textarea" id="event-description" placeholder="Weekly community bash event..." rows="3"></textarea>
+                    </div>
+                    <div style="font-size: 12.5px; color: var(--text-secondary); background: rgba(0, 212, 255, 0.08); padding: 12px; border-radius: 6px; border: 1px solid rgba(0, 212, 255, 0.2); line-height: 1.5;">
+                        🔔 <strong>Automatic Web Push:</strong> Once confirmed, this event immediately dispatches a native Web Push notification to all active devices registered across your community.
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                <button class="btn btn-primary" id="event-submit-btn" onclick="window.createCommunityEvent()">Create Event</button>
+            </div>
+        </div>
+    </div>
+
     <script src="js/api.js"></script>
     <script src="pages/dashboard.js"></script>
     <script src="pages/members.js"></script>
@@ -801,6 +848,7 @@
     <script src="pages/services.js"></script>
     <script src="pages/meeting.js"></script>
     <script src="pages/settings.js"></script>
+    <script src="js/pushNotification.js"></script>
     <script src="js/app.js"></script>
 </body>
 </html>

@@ -1,143 +1,643 @@
 {
   "members": [
     {
-      "id": "m-1",
-      "user_id": "123456789012345678",
-      "name": "Alex Developer",
-      "role": "organizer",
-      "join_date": "2026-07-31T16:38:36.378Z",
-      "activity_score": 15,
-      "streak": 5,
-      "last_active_date": "2026-08-30T16:38:36.379Z",
-      "xp": 250,
+      "id": "aab1d4c3-7a98-4bf9-903a-8fddb1572f68",
+      "user_id": "1463895354297684114",
+      "name": "haajiramufliha",
+      "role": "beginner",
+      "join_date": "2026-05-04T17:32:48.202+00:00",
+      "activity_score": 1,
+      "streak": 0,
+      "last_active_date": "2026-05-04T18:22:26.632+00:00",
+      "xp": 40,
       "completed_tasks": []
     },
     {
-      "id": "m-2",
-      "user_id": "234567890123456789",
-      "name": "Sarah Connor",
-      "role": "advanced",
-      "join_date": "2026-08-10T16:38:36.379Z",
-      "activity_score": 12,
-      "streak": 3,
-      "last_active_date": "2026-08-30T16:38:36.379Z",
-      "xp": 190,
+      "id": "833180a0-d16c-4e08-a5f5-74ff3e994b66",
+      "user_id": "928907509597614130",
+      "name": "ßøsè",
+      "role": "beginner",
+      "join_date": "2026-05-04T17:33:52.086+00:00",
+      "activity_score": 2,
+      "streak": 0,
+      "last_active_date": "2026-05-05T16:04:35.152+00:00",
+      "xp": 0,
+      "completed_tasks": [
+        {
+          "taskName": "Progress update in students-progess",
+          "pointsEarned": 10,
+          "completedDate": "2026-05-05T16:04:35.152Z"
+        }
+      ]
+    },
+    {
+      "id": "4ddbd09c-5f9c-4e8f-a78f-ae0da7c639e3",
+      "user_id": "1464634975402987521",
+      "name": "asvanth_r",
+      "role": "beginner",
+      "join_date": "2026-05-04T18:00:02.018+00:00",
+      "activity_score": 1,
+      "streak": 0,
+      "last_active_date": "2026-05-04T18:00:02.018+00:00",
+      "xp": 10,
       "completed_tasks": []
     },
     {
-      "id": "m-3",
-      "user_id": "345678901234567890",
-      "name": "John Doe",
+      "id": "0f1d3633-d3bf-4c99-b979-b4d5a7d3a5e4",
+      "user_id": "983755051208155227",
+      "name": "Arock AJ",
       "role": "beginner",
-      "join_date": "2026-08-20T16:38:36.379Z",
-      "activity_score": 8,
-      "streak": 2,
-      "last_active_date": "2026-08-30T16:38:36.379Z",
-      "xp": 80,
+      "join_date": "2026-05-04T17:07:43.339+00:00",
+      "activity_score": 5,
+      "streak": 0,
+      "last_active_date": "2026-05-07T14:19:03.687+00:00",
+      "xp": 60,
+      "completed_tasks": [
+        {
+          "taskName": "Progress update in students-progess",
+          "pointsEarned": 10,
+          "completedDate": "2026-05-04T17:07:43.339Z"
+        },
+        {
+          "taskName": "Progress update in students-progess",
+          "pointsEarned": 10,
+          "completedDate": "2026-05-04T17:30:48.203Z"
+        },
+        {
+          "taskName": "Progress update in students-progess",
+          "pointsEarned": 10,
+          "completedDate": "2026-05-07T14:08:37.837Z"
+        },
+        {
+          "taskName": "Progress update in students-progess",
+          "pointsEarned": 10,
+          "completedDate": "2026-05-07T14:08:44.604Z"
+        },
+        {
+          "taskName": "Progress update in students-progess",
+          "pointsEarned": 10,
+          "completedDate": "2026-05-07T14:17:56.128Z"
+        }
+      ]
+    },
+    {
+      "id": "1c97f90b-e035-488b-846d-1126fdedd331",
+      "user_id": "1439166845109407826",
+      "name": "gobika18",
+      "role": "beginner",
+      "join_date": "2026-05-04T17:31:41.366+00:00",
+      "activity_score": 1,
+      "streak": 0,
+      "last_active_date": "2026-05-04T17:31:41.366+00:00",
+      "xp": 10,
       "completed_tasks": []
     },
     {
-      "user_id": "1464653401727045916",
-      "name": "dharshan.jm",
+      "id": "629d9da2-5357-4850-b889-288da0b17451",
+      "user_id": "1438027959851159634",
+      "name": "Jeroof",
       "role": "beginner",
-      "join_date": "2026-09-04T17:16:11.221Z",
-      "activity_score": 0,
+      "join_date": "2026-05-04T18:00:12.679+00:00",
+      "activity_score": 2,
       "streak": 0,
-      "last_active_date": null,
+      "last_active_date": "2026-05-07T14:23:53.706+00:00",
       "xp": 10,
-      "completed_tasks": [],
-      "id": "mem-mtn7tvmgsya9"
+      "completed_tasks": [
+        {
+          "taskName": "Progress update in students-progess",
+          "pointsEarned": 10,
+          "completedDate": "2026-05-07T14:23:53.706Z"
+        }
+      ]
     },
     {
-      "user_id": "1463895075057827957",
-      "name": "v.lvignesh",
+      "id": "3f4d9546-c04d-48d7-a98d-c6c9dc34d5cb",
+      "user_id": "1439270927039860767",
+      "name": "alginn_08",
       "role": "beginner",
-      "join_date": "2026-09-06T16:47:28.984Z",
-      "activity_score": 0,
+      "join_date": "2026-05-04T17:34:21.764+00:00",
+      "activity_score": 1,
       "streak": 0,
-      "last_active_date": null,
-      "xp": 10,
-      "completed_tasks": [],
-      "id": "mem-mtq1oo3czzn8"
+      "last_active_date": "2026-05-04T17:34:21.764+00:00",
+      "xp": 20,
+      "completed_tasks": []
     },
     {
-      "user_id": "1167152655890645107",
-      "name": "michalnithesh",
+      "id": "471caab5-0be5-4672-86af-8f3fd2165605",
+      "user_id": "1498326262534504448",
+      "name": "dervinkumar",
       "role": "beginner",
-      "join_date": "2026-09-06T17:19:17.522Z",
-      "activity_score": 0,
+      "join_date": "2026-05-04T17:34:54.323+00:00",
+      "activity_score": 1,
       "streak": 0,
-      "last_active_date": null,
+      "last_active_date": "2026-05-04T17:34:54.323+00:00",
       "xp": 10,
-      "completed_tasks": [],
-      "id": "mem-mtq2tkpha5kx"
+      "completed_tasks": []
     },
     {
+      "id": "4aac7f03-eeab-4dfa-801d-cbd7c5a6579f",
+      "user_id": "1463904372193886319",
+      "name": "Linciya",
+      "role": "beginner",
+      "join_date": "2026-05-04T17:32:34.182+00:00",
+      "activity_score": 1,
+      "streak": 0,
+      "last_active_date": "2026-05-04T17:35:12.588+00:00",
+      "xp": 20,
+      "completed_tasks": [
+        {
+          "taskName": "Progress update in students-progess",
+          "pointsEarned": 10,
+          "completedDate": "2026-05-04T17:32:34.182Z"
+        }
+      ]
+    },
+    {
+      "id": "681d4061-48bc-45f2-88fb-dd305d0498bc",
+      "user_id": "1463896558574637202",
+      "name": "asthamil",
+      "role": "beginner",
+      "join_date": "2026-05-04T17:35:32.105+00:00",
+      "activity_score": 1,
+      "streak": 0,
+      "last_active_date": "2026-05-04T17:35:32.105+00:00",
+      "xp": 10,
+      "completed_tasks": []
+    },
+    {
+      "id": "e06fc110-34fe-460a-9427-1a0e58f9c7f1",
+      "user_id": "1464300933860032699",
+      "name": "Sarikhaa",
+      "role": "beginner",
+      "join_date": "2026-05-04T17:21:23.678+00:00",
+      "activity_score": 2,
+      "streak": 0,
+      "last_active_date": "2026-05-05T17:33:12.51+00:00",
+      "xp": 50,
+      "completed_tasks": [
+        {
+          "taskName": "Progress update in students-progess",
+          "pointsEarned": 10,
+          "completedDate": "2026-05-04T17:21:23.678Z"
+        },
+        {
+          "taskName": "Progress update in students-progess",
+          "pointsEarned": 10,
+          "completedDate": "2026-05-05T17:33:12.510Z"
+        }
+      ]
+    },
+    {
+      "id": "1835301d-4834-4cef-9955-615fb63ffe30",
+      "user_id": "1308051461950672971",
+      "name": "andreabetrina",
+      "role": "beginner",
+      "join_date": "2026-05-04T18:00:09.278+00:00",
+      "activity_score": 1,
+      "streak": 0,
+      "last_active_date": "2026-05-04T18:00:09.278+00:00",
+      "xp": 10,
+      "completed_tasks": []
+    },
+    {
+      "id": "33d760fe-85e7-42bb-af88-cbb6da350c42",
+      "user_id": "1312808397418266685",
+      "name": "siva_5392",
+      "role": "beginner",
+      "join_date": "2026-05-04T18:00:14.331+00:00",
+      "activity_score": 1,
+      "streak": 0,
+      "last_active_date": "2026-05-04T18:00:14.331+00:00",
+      "xp": 10,
+      "completed_tasks": []
+    },
+    {
+      "id": "db82ab84-c590-49a3-89de-d62b90b8c52f",
       "user_id": "1309201554787664026",
       "name": "anitus_a",
       "role": "beginner",
-      "join_date": "2026-09-06T17:19:49.879Z",
-      "activity_score": 0,
+      "join_date": "2026-05-04T18:00:14.884+00:00",
+      "activity_score": 1,
       "streak": 0,
-      "last_active_date": null,
+      "last_active_date": "2026-05-04T18:00:14.884+00:00",
       "xp": 10,
-      "completed_tasks": [],
-      "id": "mem-mtq2u9o98263"
+      "completed_tasks": []
     },
     {
-      "user_id": "test-user-12345",
-      "name": "Test Coder",
+      "id": "1eff84cc-cd9c-47f4-9159-b41bbb7701fd",
+      "user_id": "1167152655890645107",
+      "name": "michalnithesh",
       "role": "beginner",
-      "join_date": "2026-09-06T17:30:30.043Z",
+      "join_date": "2026-05-04T18:00:16.523+00:00",
+      "activity_score": 1,
+      "streak": 0,
+      "last_active_date": "2026-05-04T18:00:16.523+00:00",
+      "xp": 10,
+      "completed_tasks": []
+    },
+    {
+      "id": "637dcfd7-944d-4cdb-a078-403772689058",
+      "user_id": "1464296657540878439",
+      "name": "mohamed_arshiya",
+      "role": "beginner",
+      "join_date": "2026-05-04T17:33:13.775+00:00",
+      "activity_score": 1,
+      "streak": 0,
+      "last_active_date": "2026-05-07T14:03:23.753+00:00",
+      "xp": 20,
+      "completed_tasks": []
+    },
+    {
+      "id": "12c517a9-ba90-4c5e-956e-0e62338c85f7",
+      "user_id": "1438028172313755720",
+      "name": "THARUN KRISHNA K R",
+      "role": "beginner",
+      "join_date": "2026-05-04T17:33:32.632+00:00",
+      "activity_score": 3,
+      "streak": 0,
+      "last_active_date": "2026-05-07T18:07:51.727+00:00",
+      "xp": 40,
+      "completed_tasks": [
+        {
+          "taskName": "Progress update in students-progess",
+          "pointsEarned": 10,
+          "completedDate": "2026-05-07T14:25:00.021Z"
+        },
+        {
+          "taskName": "Progress update in students-progess",
+          "pointsEarned": 10,
+          "completedDate": "2026-05-07T17:35:10.269Z"
+        }
+      ]
+    },
+    {
+      "id": "52e15630-07dd-4cbb-9b37-bba7655ab426",
+      "user_id": "1438727184209416266",
+      "name": "Jagadeesh",
+      "role": "beginner",
+      "join_date": "2026-05-04T17:29:36.502+00:00",
+      "activity_score": 4,
+      "streak": 0,
+      "last_active_date": "2026-05-07T17:46:43.536+00:00",
+      "xp": 70,
+      "completed_tasks": [
+        {
+          "taskName": "Progress update in students-progess",
+          "pointsEarned": 10,
+          "completedDate": "2026-05-05T17:19:57.795Z"
+        },
+        {
+          "taskName": "Progress update in students-progess",
+          "pointsEarned": 10,
+          "completedDate": "2026-05-07T17:46:43.456Z"
+        },
+        {
+          "taskName": "Progress update in students-progess",
+          "pointsEarned": 10,
+          "completedDate": "2026-05-07T17:46:43.536Z"
+        }
+      ]
+    },
+    {
+      "id": "5164c50b-f79a-44f6-9b43-0b5e797a8df1",
+      "user_id": "1465400803383578890",
+      "name": "mohamedsameeth",
+      "role": "beginner",
+      "join_date": "2026-05-04T18:00:11.581+00:00",
+      "activity_score": 1,
+      "streak": 0,
+      "last_active_date": "2026-05-05T12:52:07.252+00:00",
+      "xp": 0,
+      "completed_tasks": []
+    },
+    {
+      "id": "ffd870d3-a9db-46b0-9428-75840ccf00b8",
+      "user_id": "1463907157773914186",
+      "name": "santush_0x",
+      "role": "beginner",
+      "join_date": "2026-05-04T18:00:02.808+00:00",
+      "activity_score": 1,
+      "streak": 0,
+      "last_active_date": "2026-05-05T12:52:46.413+00:00",
+      "xp": 0,
+      "completed_tasks": []
+    },
+    {
+      "id": "744acdaf-1e4a-44eb-8832-d6150481524d",
+      "user_id": "1498525717686653010",
+      "name": "akash__v.a",
+      "role": "beginner",
+      "join_date": "2026-05-04T18:00:18.781+00:00",
+      "activity_score": 1,
+      "streak": 0,
+      "last_active_date": "2026-05-05T15:34:32.008+00:00",
+      "xp": 0,
+      "completed_tasks": []
+    },
+    {
+      "id": "345b1c12-e438-49f4-a5e7-6b93919d798e",
+      "user_id": "1408464312422498374",
+      "name": "jashz_2813",
+      "role": "beginner",
+      "join_date": "2026-05-04T18:00:04.598+00:00",
+      "activity_score": 1,
+      "streak": 0,
+      "last_active_date": "2026-05-04T18:00:04.598+00:00",
+      "xp": 10,
+      "completed_tasks": []
+    },
+    {
+      "id": "8bed8dca-ea15-475e-b610-0b79de3feb8d",
+      "user_id": "1464653401727045916",
+      "name": "Dharshan. J.M",
+      "role": "beginner",
+      "join_date": "2026-05-04T16:32:21.001+00:00",
+      "activity_score": 3,
+      "streak": 0,
+      "last_active_date": "2026-05-05T16:42:36.929+00:00",
+      "xp": 50,
+      "completed_tasks": [
+        {
+          "taskName": "Progress update in students-progess",
+          "pointsEarned": 10,
+          "completedDate": "2026-05-04T16:32:21.001Z"
+        },
+        {
+          "taskName": "Progress update in students-progess",
+          "pointsEarned": 10,
+          "completedDate": "2026-05-04T16:59:27.534Z"
+        },
+        {
+          "taskName": "Progress update in students-progess",
+          "pointsEarned": 10,
+          "completedDate": "2026-05-05T16:42:36.929Z"
+        }
+      ]
+    },
+    {
+      "id": "eafc92ed-ac75-4a97-802d-b9752161ca90",
+      "user_id": "1463853682281021550",
+      "name": "Naveen M",
+      "role": "beginner",
+      "join_date": "2026-05-04T17:32:20.516+00:00",
       "activity_score": 2,
       "streak": 0,
-      "last_active_date": "2026-09-06T17:31:17.377Z",
+      "last_active_date": "2026-05-05T16:54:02.418+00:00",
       "xp": 30,
       "completed_tasks": [
         {
-          "taskName": "Quiz: Cybersecurity",
-          "completedDate": "2026-09-06T17:30:30.043Z",
-          "pointsEarned": 15
-        },
-        {
-          "taskName": "Quiz: Cybersecurity",
-          "completedDate": "2026-09-06T17:31:17.377Z",
-          "pointsEarned": 15
+          "taskName": "Progress update in students-progess",
+          "pointsEarned": 10,
+          "completedDate": "2026-05-05T16:54:02.419Z"
         }
-      ],
-      "id": "mem-mtq37zmmx531"
+      ]
     },
     {
-      "user_id": "btn-user-1",
-      "name": "Button User",
+      "id": "cf0f4326-6049-40f6-ad1e-4adb3c941ef1",
+      "user_id": "1463895075057827957",
+      "name": "v.lvignesh",
       "role": "beginner",
-      "join_date": "2026-09-06T17:31:38.279Z",
+      "join_date": "2026-05-04T18:00:06.349+00:00",
       "activity_score": 1,
       "streak": 0,
-      "last_active_date": "2026-09-06T17:31:38.279Z",
-      "xp": 15,
+      "last_active_date": "2026-05-04T18:00:06.349+00:00",
+      "xp": 10,
+      "completed_tasks": []
+    },
+    {
+      "id": "a8d97a24-ad8b-4ee7-8d50-d63eeb159ccc",
+      "user_id": "1351537084967686144",
+      "name": "muja_2_51321",
+      "role": "beginner",
+      "join_date": "2026-05-04T18:00:05.753+00:00",
+      "activity_score": 1,
+      "streak": 0,
+      "last_active_date": "2026-05-04T18:00:05.753+00:00",
+      "xp": 10,
+      "completed_tasks": []
+    },
+    {
+      "id": "c88cfdb7-90ca-4f8f-8a0e-5441f0faedc4",
+      "user_id": "1463895541342535815",
+      "name": "Susmitha",
+      "role": "beginner",
+      "join_date": "2026-05-04T16:50:40.632+00:00",
+      "activity_score": 1,
+      "streak": 0,
+      "last_active_date": "2026-05-04T17:30:41.711+00:00",
+      "xp": 30,
       "completed_tasks": [
         {
-          "taskName": "Quiz: Web Development",
-          "completedDate": "2026-09-06T17:31:38.279Z",
-          "pointsEarned": 15
+          "taskName": "Progress update in students-progess",
+          "pointsEarned": 10,
+          "completedDate": "2026-05-04T16:50:40.632Z"
         }
-      ],
-      "id": "mem-mtq39ga3axvn"
+      ]
+    },
+    {
+      "id": "b2a4366c-a17b-40be-aa88-73609a2b6a09",
+      "user_id": "1173251816159461497",
+      "name": "vishal._.24",
+      "role": "beginner",
+      "join_date": "2026-05-04T18:00:17.117+00:00",
+      "activity_score": 1,
+      "streak": 0,
+      "last_active_date": "2026-05-04T18:00:17.117+00:00",
+      "xp": 10,
+      "completed_tasks": []
+    },
+    {
+      "id": "e5bdc34e-596d-4b6b-9de1-25f9158c9cf5",
+      "user_id": "1464854872015896796",
+      "name": "sahayarishi18",
+      "role": "beginner",
+      "join_date": "2026-05-04T18:00:19.955+00:00",
+      "activity_score": 1,
+      "streak": 0,
+      "last_active_date": "2026-05-05T16:57:57.408+00:00",
+      "xp": 20,
+      "completed_tasks": []
+    },
+    {
+      "id": "79bf8c03-457e-4b8b-9faf-d7cdbe3d4b40",
+      "user_id": "1438161218144829442",
+      "name": "aswin01485",
+      "role": "beginner",
+      "join_date": "2026-05-04T18:00:17.666+00:00",
+      "activity_score": 1,
+      "streak": 0,
+      "last_active_date": "2026-05-05T16:59:01.205+00:00",
+      "xp": 0,
+      "completed_tasks": []
+    },
+    {
+      "id": "f2faca73-75ac-4351-9ae8-a5869cf0c0db",
+      "user_id": "1425881029427724341",
+      "name": "thebatgoat_",
+      "role": "beginner",
+      "join_date": "2026-05-04T18:00:10.937+00:00",
+      "activity_score": 1,
+      "streak": 0,
+      "last_active_date": "2026-05-05T16:59:56.691+00:00",
+      "xp": 0,
+      "completed_tasks": []
+    },
+    {
+      "id": "8441a2d6-bec6-4901-afb9-92ede80930f0",
+      "user_id": "1438025229774618734",
+      "name": "Zenitzu",
+      "role": "beginner",
+      "join_date": "2026-05-04T17:27:59.888+00:00",
+      "activity_score": 3,
+      "streak": 0,
+      "last_active_date": "2026-05-07T18:32:42.362+00:00",
+      "xp": 20,
+      "completed_tasks": [
+        {
+          "taskName": "Progress update in students-progess",
+          "pointsEarned": 10,
+          "completedDate": "2026-05-07T15:08:38.399Z"
+        },
+        {
+          "taskName": "Progress update in students-progess",
+          "pointsEarned": 10,
+          "completedDate": "2026-05-07T15:08:44.833Z"
+        }
+      ]
     }
   ],
   "progress": [
     {
-      "id": "p-1",
-      "user_id": "123456789012345678",
-      "date": "2026-08-30T16:38:36.379Z",
-      "text": "Completed chapter 3 cyber security challenge and documented writeup"
+      "id": "21a18abc-a0ee-4cfb-8265-7dac05eb0f2a",
+      "user_id": "1464653401727045916",
+      "date": "2026-05-04T16:32:21.238+00:00",
+      "text": "done"
     },
     {
-      "id": "p-2",
-      "user_id": "234567890123456789",
-      "date": "2026-08-30T15:38:36.379Z",
-      "text": "Solved SQL injection room on TryHackMe with 100% flags"
+      "id": "a2bd412f-fb2d-4fad-a46f-a856e2e95566",
+      "user_id": "1463895541342535815",
+      "date": "2026-05-04T16:50:40.765+00:00",
+      "text": "Today I have learned more about IP address [1 attachment(s)]"
+    },
+    {
+      "id": "c01d7124-381a-45ad-86fa-cdc7a1b4e63b",
+      "user_id": "1464653401727045916",
+      "date": "2026-05-04T16:59:27.638+00:00",
+      "text": "done"
+    },
+    {
+      "id": "15e45894-1e5b-48d7-a2d4-65a66d75d5f6",
+      "user_id": "983755051208155227",
+      "date": "2026-05-04T17:07:43.466+00:00",
+      "text": "ahh"
+    },
+    {
+      "id": "c2b0d658-dc06-47c0-b937-42eb17b42e79",
+      "user_id": "1464300933860032699",
+      "date": "2026-05-04T17:21:23.793+00:00",
+      "text": "04/05/2026(done ✅) [1 attachment(s)]"
+    },
+    {
+      "id": "af7e2f98-1299-4716-ae03-edeb2579f232",
+      "user_id": "983755051208155227",
+      "date": "2026-05-04T17:30:48.296+00:00",
+      "text": "✅"
+    },
+    {
+      "id": "3d6a71d1-2bd9-4c5a-8694-283692eebbc6",
+      "user_id": "1463904372193886319",
+      "date": "2026-05-04T17:32:34.279+00:00",
+      "text": "4 -05-2026\nDone👍🏻 [1 attachment(s)]"
+    },
+    {
+      "id": "d5c74baa-e903-45bd-aab9-1c67ff83a94d",
+      "user_id": "928907509597614130",
+      "date": "2026-05-05T16:04:35.281+00:00",
+      "text": "May 5 \nCompleted the ip address [1 attachment(s)]"
+    },
+    {
+      "id": "ccf3d696-a407-41cc-87b8-7c41d4f1e3a5",
+      "user_id": "1464653401727045916",
+      "date": "2026-05-05T16:42:37.057+00:00",
+      "text": "done [1 attachment(s)]"
+    },
+    {
+      "id": "4ad5b776-dc69-4c55-9ba9-3c6a74d05d96",
+      "user_id": "1463853682281021550",
+      "date": "2026-05-05T16:54:02.535+00:00",
+      "text": "🛜 Networking Day -3 \n\n✅ Done [1 attachment(s)]"
+    },
+    {
+      "id": "26de6560-e3b8-4da7-aac0-285eb8e48bee",
+      "user_id": "1438727184209416266",
+      "date": "2026-05-05T17:19:57.907+00:00",
+      "text": "Stepping deeper into IP address \nDone 👍🏻 [1 attachment(s)]"
+    },
+    {
+      "id": "8f7a289b-d104-44c9-a9f5-3bdf16f4b936",
+      "user_id": "1464300933860032699",
+      "date": "2026-05-05T17:33:12.633+00:00",
+      "text": "05-05-2026(done ✅) [1 attachment(s)]"
+    },
+    {
+      "id": "41e3c6b9-bb0d-4099-9b10-e5873a868ca7",
+      "user_id": "983755051208155227",
+      "date": "2026-05-07T14:08:37.963+00:00",
+      "text": "Done ✅✅"
+    },
+    {
+      "id": "599cb55c-6e99-4b11-9947-cd04d7ab8307",
+      "user_id": "983755051208155227",
+      "date": "2026-05-07T14:08:44.717+00:00",
+      "text": "✅"
+    },
+    {
+      "id": "fa79b8fd-b505-4086-986a-76638cabe3ae",
+      "user_id": "983755051208155227",
+      "date": "2026-05-07T14:17:56.26+00:00",
+      "text": "1 attachment(s)"
+    },
+    {
+      "id": "4fd98748-eb62-4279-8d0d-ec453f713812",
+      "user_id": "1438027959851159634",
+      "date": "2026-05-07T14:23:53.83+00:00",
+      "text": "07/05/2026 (𝑫𝒐𝒏𝒆💥) [1 attachment(s)]"
+    },
+    {
+      "id": "88ffdf7c-9ef7-47f3-b9ab-e236279bf19b",
+      "user_id": "1438028172313755720",
+      "date": "2026-05-07T14:25:00.119+00:00",
+      "text": "Congratulations 🎉💯"
+    },
+    {
+      "id": "0f6b3073-7020-4d81-a1b4-512e5fe0af7e",
+      "user_id": "1438025229774618734",
+      "date": "2026-05-07T15:08:38.524+00:00",
+      "text": "!"
+    },
+    {
+      "id": "035a92ff-f984-4c03-8bcc-9de3008f6bfa",
+      "user_id": "1438025229774618734",
+      "date": "2026-05-07T15:08:44.924+00:00",
+      "text": "??"
+    },
+    {
+      "id": "2a7816b2-2371-459c-8e5e-5a5ccd7e9345",
+      "user_id": "1438028172313755720",
+      "date": "2026-05-07T17:35:10.412+00:00",
+      "text": "May 7 - done ✅ [2 attachment(s)]"
+    },
+    {
+      "id": "f13a1531-cdb6-45a7-a19a-91f4fc490370",
+      "user_id": "1438727184209416266",
+      "date": "2026-05-07T17:46:43.504+00:00",
+      "text": "Class B Subnetting Done 👍🏻 [3 attachment(s)]"
+    },
+    {
+      "id": "973ac86b-33ad-48c2-a389-28869d172afb",
+      "user_id": "1438727184209416266",
+      "date": "2026-05-07T17:46:43.636+00:00",
+      "text": "Class B Subnetting Done 👍🏻 [3 attachment(s)]"
     }
   ],
   "attendance": [
@@ -554,6 +1054,18 @@
       "status": "ended",
       "created_at": "2026-09-06T17:39:04.999Z",
       "id": "mee-mtq3j0zh77uf"
+    }
+  ],
+  "push_subscriptions": [
+    {
+      "id": "sub-1789147696137-q3ncz",
+      "user_id": "community-device",
+      "endpoint": "https://wns2-pn1p.notify.windows.com/w/?token=BQYAAACsZcQb8AJYuOn%2bEzHA295lO%2fe%2bqfiHtBfkl5QeLCK9BXNO9xZrJ%2fbPRhE0B%2fEA6AXWfUGKc7%2bVAe9ZPn7Xw2fK5EAElaSHB03puckIS0%2fBEAPJzZZro6%2fl%2bLUi2Y4i18wH65Bbv%2fWGY8DwL9AJTEADjPl%2bsFY7V3kd3lJuEMH6mcw6tZAOGMZWnMh7Kr%2bwGliFUGQb0NiO%2bLZ8csVHtEfdFzR0zOvvRwhYid%2f1rpCl3rAgbRO%2b2D6G1PNudXj2eEcPA%2bVH%2bDcdGtWgfI7ViuxQZ0MIq66cDeOgRs1lapLnNWacX60qJ53oNiEn1g9cE2PY3o1mYA2cva0o4T%2bq6OyD",
+      "p256dh": "BJWKwQpUrgD81IovrwUowM97rQWK41dD-KMnANK7ZhYrSdnj4sZZSNbTVK2jVwS8LuoYf8XO23r9Rv-dLSmHJvU",
+      "auth": "km4Df4zIlHwWQjM4y93LzA",
+      "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36 Edg/152.0.0.0",
+      "created_at": "2026-09-11T17:28:15.985Z",
+      "updated_at": "2026-09-11T17:28:15.985Z"
     }
   ]
 }

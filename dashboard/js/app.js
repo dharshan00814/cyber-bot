@@ -283,6 +283,67 @@ const app = {
 
 window.app = app;
 
+window.createCommunityEvent = async function() {
+    const titleInput = document.getElementById('event-title');
+    const dateInput = document.getElementById('event-date');
+    const timeInput = document.getElementById('event-time');
+    const locationInput = document.getElementById('event-location');
+    const descInput = document.getElementById('event-description');
+    const submitBtn = document.getElementById('event-submit-btn');
+
+    if (!titleInput || !dateInput || !timeInput) return;
+
+    const title = titleInput.value.trim();
+    const date = dateInput.value.trim();
+    const time = timeInput.value.trim();
+    const location = locationInput ? locationInput.value.trim() : '';
+    const description = descInput ? descInput.value.trim() : '';
+
+    if (!title || !date || !time) {
+        app.toast('Title, Date, and Time are required.', 'error');
+        return;
+    }
+
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Creating & Notifying...';
+    }
+
+    try {
+        const response = await api.post('/dashboard/events', {
+            title,
+            date,
+            time,
+            location,
+            description,
+        });
+
+        const notifyStats = response.notification;
+        const sentCount = notifyStats?.sent ?? 0;
+
+        app.toast(`✓ Event created! Push notification sent to ${sentCount} device(s).`, 'success');
+        app.hideModal('modal-event');
+
+        titleInput.value = '';
+        dateInput.value = '';
+        timeInput.value = '';
+        if (descInput) descInput.value = '';
+
+        if (app.currentPage === 'announcements' && window.pageAnnouncements?.fetchAnnouncements) {
+            window.pageAnnouncements.fetchAnnouncements();
+        }
+    } catch (error) {
+        console.error('Failed to create event:', error);
+        app.toast(error.message || 'Failed to create event', 'error');
+    } finally {
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Create Event';
+        }
+    }
+};
+
 document.addEventListener('DOMContentLoaded', () => {
     app.handleLogin();
 });
+

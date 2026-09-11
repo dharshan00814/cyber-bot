@@ -34,7 +34,31 @@ function requireAuth(req, res, next) {
     return res.status(401).json({ error: 'Unauthorized' });
 }
 
+// Public Web Push endpoints for community members
+app.get('/api/dashboard/push/vapid-public-key', (req, res) => {
+    const { getVapidConfig } = require('./utils/notificationService');
+    res.json({ publicKey: getVapidConfig().publicKey });
+});
+
+app.post('/api/dashboard/push/subscribe', async (req, res) => {
+    const { saveSubscription } = require('./utils/notificationService');
+    try {
+        const { endpoint, p256dh, auth, userAgent, userId } = req.body;
+        const result = await saveSubscription({
+            endpoint,
+            p256dh,
+            auth,
+            userAgent,
+            userId: userId || req.session?.userId || 'community-device',
+        });
+        res.status(201).json(result);
+    } catch (err) {
+        res.status(400).json({ error: err.message });
+    }
+});
+
 app.use('/api/dashboard', requireAuth, dashboardRoutes);
+
 
 app.get('/api/auth/check', (req, res) => {
     res.json({ authenticated: !!(req.session && req.session.isAdmin) });
