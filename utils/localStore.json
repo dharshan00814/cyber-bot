@@ -731,46 +731,11 @@
   ],
   "settings": [
     {
-      "id": "s-1",
-      "key": "bot_prefix",
-      "value": "\"!\"",
-      "category": "bot",
-      "updated_at": "2026-08-30T16:38:36.379Z"
-    },
-    {
-      "id": "s-2",
-      "key": "daily_xp_reward",
-      "value": "10",
-      "category": "progress",
-      "updated_at": "2026-08-30T16:38:36.379Z"
-    },
-    {
-      "id": "s-3",
-      "key": "channels",
-      "value": "{\"progress\":\"\",\"announcement\":\"\",\"general\":\"\"}",
-      "category": "channels",
-      "updated_at": "2026-08-30T16:38:36.379Z"
-    },
-    {
-      "key": "whatsapp_default_group",
-      "value": "\"120363427684628308@g.us\"",
-      "category": "whatsapp",
-      "updated_at": "2026-09-04T17:06:42.112Z",
-      "id": "set-mtn7hoi65la5"
-    },
-    {
-      "key": "whatsapp_reminder_template",
-      "value": "\"🔔 *Reminder:* Cybersecurity daily session starts at 11:00 PM! Please join on time.\"",
-      "category": "whatsapp",
-      "updated_at": "2026-09-04T17:06:44.628Z",
-      "id": "set-mtn7hqfrxgl3"
-    },
-    {
+      "id": "3ce8541b-84c3-42a9-8b59-116ded2d795d",
       "key": "discord_bot_heartbeat",
-      "value": "{\"online\":true,\"user\":\"CYBER-FOX#7414\",\"guilds\":1,\"ping\":636,\"uptime\":150068,\"lastSeen\":1789151893623}",
+      "value": "{\"online\":true,\"user\":\"CYBER-FOX#7414\",\"guilds\":1,\"ping\":643,\"uptime\":800248,\"lastSeen\":1789152543803}",
       "category": "bot",
-      "updated_at": "2026-09-11T18:38:13.814Z",
-      "id": "set-mtxar5h97tar"
+      "updated_at": "2026-09-11T18:49:04.175+00:00"
     }
   ],
   "playlists": [],
