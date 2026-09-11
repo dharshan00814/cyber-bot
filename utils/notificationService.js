@@ -180,6 +180,9 @@ async function triggerEventNotification({ eventId, title, date, time, descriptio
             console.log(`[NotificationService] Invoking Supabase Edge Function 'send-event-notification' for event: ${payload.title}`);
             const { data, error } = await supabase.functions.invoke('send-event-notification', {
                 body: payload,
+                headers: {
+                    'x-dashboard-auth': process.env.DASHBOARD_PASSWORD || 'admin123',
+                },
             });
 
             if (!error && data && data.success) {

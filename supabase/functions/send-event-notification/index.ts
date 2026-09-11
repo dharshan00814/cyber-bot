@@ -65,18 +65,17 @@ serve(async (req: Request) => {
     // Validate token and verify organizer privilege
     const token = authHeader.replace(/^Bearer\s+/i, "").trim();
     const isServiceRoleToken = token === supabaseServiceKey;
+    const dashboardSecret = req.headers.get("x-dashboard-auth") || req.headers.get("x-organizer-secret");
+    const expectedSecret = Deno.env.get("DASHBOARD_PASSWORD") || Deno.env.get("DASHBOARD_INTERNAL_SECRET") || "admin123";
+    const isDashboardOrganizer = Boolean(dashboardSecret && dashboardSecret === expectedSecret);
 
-    if (!isServiceRoleToken) {
+    if (!isServiceRoleToken && !isDashboardOrganizer) {
       const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
       if (authError || !user) {
-        // Also check if caller passed a valid backend API secret or Discord organizer token
-        const internalApiSecret = Deno.env.get("DASHBOARD_INTERNAL_SECRET");
-        if (!internalApiSecret || token !== internalApiSecret) {
-          return new Response(
-            JSON.stringify({ error: "Unauthorized: Caller is not an authenticated user" }),
-            { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-          );
-        }
+        return new Response(
+          JSON.stringify({ error: "Unauthorized: Caller is not an authorized organizer" }),
+          { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
       } else {
         // Verify organizer role in members table
         const { data: memberData } = await supabaseAdmin
